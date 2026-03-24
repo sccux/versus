@@ -157,6 +157,7 @@ Tab Navigation (bottom bar)
   - **Invite Link:** share via native share sheet (SMS, email, etc.)
   - **QR Code:** full-screen QR; partner scans with in-app scanner
 - Deep link or code entry completes pairing and routes to Swipe tab
+- **Deep link before auth:** If a user opens an invite link before logging in, the app stores the invite token locally, completes auth flow, then automatically resumes pairing with the stored token
 
 ### Swipe Tab (Home)
 - Stack of swipeable date idea cards (Reanimated 3 gesture)
@@ -195,7 +196,7 @@ Three sub-tabs:
 1. Tap "Schedule a date"
 2. Date + time picker
 3. Confirm → option to add to device calendar (iOS Calendar / Google Calendar via Expo Calendar API)
-4. Status updates to `scheduled`
+4. Status updates to `scheduled`; the updated match row is propagated to the partner in real-time via Supabase Realtime subscription — both partners see the date appear in their Upcoming sub-tab without needing to reload
 
 **Marking complete:**
 1. Tap "Mark as Complete"
@@ -255,7 +256,7 @@ No other notification types in v1.
 - Curated ideas: seeded directly into `date_ideas` with `submitted_by = null` and `is_approved = true`
 - Community submissions: `is_approved = false` until manually approved via Supabase Studio (no admin UI in v1)
 - All approved ideas look identical in the swipe stack regardless of origin
-- Ideas are filtered by `location_region` to match the couple's location
+- Ideas are filtered by `location_region` to match the couple's location. When partners have different regions set, the couple's region defaults to **user_a's region** (the one who initiated the couple). Either partner can update the couple's location from the Profile tab.
 
 ---
 
