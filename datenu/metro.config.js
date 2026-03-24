@@ -2,7 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-// Tamagui: allow .web.js extensions for web compat
-config.resolver.sourceExts.push('mjs');
+config.resolver.sourceExts.push('mjs', 'cjs');
+config.resolver.unstable_enablePackageExports = true;
 
 module.exports = config;

@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FAFAF8"
     },
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#FAFAF8"
       },
       "package": "com.yourname.datenu",
@@ -44,6 +44,9 @@
       "expo-web-browser",
       "expo-sharing",
       "@react-native-community/datetimepicker",
+      "expo-camera",
+      "expo-image-picker",
+      "expo-calendar",
       [
         "expo-notifications",
         {
