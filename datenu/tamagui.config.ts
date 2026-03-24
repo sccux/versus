@@ -6,15 +6,15 @@ const tokens = createTokens({
   ...defaultConfig.tokens,
   color: {
     ...defaultConfig.tokens.color,
-    background: colors.background,
-    textPrimary: colors.textPrimary,
-    textSecondary: colors.textSecondary,
-    accent: colors.accent,
-    accentLight: colors.accentLight,
-    surface: colors.surface,
-    border: colors.border,
-    success: colors.success,
-    error: colors.error,
+    appBackground: colors.background,
+    appTextPrimary: colors.textPrimary,
+    appTextSecondary: colors.textSecondary,
+    appAccent: colors.accent,
+    appAccentLight: colors.accentLight,
+    appSurface: colors.surface,
+    appBorder: colors.border,
+    appSuccess: colors.success,
+    appError: colors.error,
   },
   radius: {
     ...defaultConfig.tokens.radius,
@@ -32,9 +32,6 @@ const tokens = createTokens({
     xl: spacing.xl,
     xxl: spacing.xxl,
   },
-  size: {
-    ...defaultConfig.tokens.size,
-  },
 });
 
 const config = createTamagui({
@@ -44,9 +41,21 @@ const config = createTamagui({
     ...defaultConfig.themes,
     light: {
       ...defaultConfig.themes.light,
-      background: '$background',
-      color: '$textPrimary',
-      borderColor: '$border',
+      background: tokens.color.appBackground,
+      color: tokens.color.appTextPrimary,
+      borderColor: tokens.color.appBorder,
+      accent: tokens.color.appAccent,
+      accentLight: tokens.color.appAccentLight,
+      surface: tokens.color.appSurface,
+      success: tokens.color.appSuccess,
+      error: tokens.color.appError,
+    },
+    dark: {
+      ...defaultConfig.themes.dark,
+      accent: tokens.color.appAccent,
+      accentLight: tokens.color.appAccentLight,
+      success: tokens.color.appSuccess,
+      error: tokens.color.appError,
     },
   },
 });
