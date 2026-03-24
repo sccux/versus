@@ -26,6 +26,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "datenu",
+    "experiments": {
+      "typedRoutes": true
+    },
     "plugins": [
       "expo-router",
       "expo-image",
