@@ -1,34 +1,41 @@
 {
   "expo": {
-    "name": "datenu",
+    "name": "DateNu",
     "slug": "datenu",
+    "scheme": "datenu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FAFAF8"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourname.datenu",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "DateNu uses your calendar to schedule dates.",
+        "NSCameraUsageDescription": "DateNu uses your camera to scan QR codes.",
+        "NSPhotoLibraryUsageDescription": "DateNu uses your photo library to add images to date ideas."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAFAF8"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.yourname.datenu",
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "scheme": "datenu",
-    "experiments": {
-      "typedRoutes": true
     },
     "plugins": [
       "expo-router",
@@ -36,7 +43,17 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-sharing",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#C97B84"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
