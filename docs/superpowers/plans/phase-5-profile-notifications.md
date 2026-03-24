@@ -131,7 +131,10 @@ export async function scheduleDateReminder(params: {
       body: 'Your date is coming up tomorrow!',
       data: {},
     },
-    trigger: { date: triggerDate },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: triggerDate,
+    },
   });
   return id;
 }
@@ -288,7 +291,7 @@ supabase functions deploy notify-match
   - **Table:** `public.matches`
   - **Events:** INSERT
   - **URL:** `https://<your-project>.supabase.co/functions/v1/notify-match`
-  - **HTTP Headers:** `Authorization: Bearer <service_role_key>`
+  - **HTTP Headers:** `Authorization: Bearer <anon_key>` (use the anon key here, NOT the service role key — the Edge Function reads `SUPABASE_SERVICE_ROLE_KEY` from its own env vars to make privileged queries internally)
 
 - [ ] **Step 4: Test the webhook**
 
@@ -376,6 +379,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
 import { useCouple } from '@/hooks/useCouple';
 import { updateUserProfile, signOut } from '@/lib/auth';
+import { updateCoupleLocation } from '@/lib/couples';
 import { colors, spacing, radii } from '@/constants/theme';
 
 export default function ProfileTab() {
@@ -384,7 +388,12 @@ export default function ProfileTab() {
   const { couple, partner } = useCouple(session?.user?.id);
 
   const [displayName, setDisplayName] = useState(user?.display_name ?? '');
-  const [location, setLocation] = useState(user?.location_region ?? '');
+  // Initialize from couple; if couple loads after mount, useEffect below syncs it
+  const [coupleLocation, setCoupleLocation] = useState(couple?.location_region ?? '');
+
+  useEffect(() => {
+    if (couple?.location_region) setCoupleLocation(couple.location_region);
+  }, [couple?.location_region]);
   const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -394,8 +403,11 @@ export default function ProfileTab() {
     try {
       await updateUserProfile(session.user.id, {
         display_name: displayName.trim(),
-        location_region: location.trim(),
       });
+      // Update shared couple location if changed
+      if (couple?.id && coupleLocation.trim() !== couple.location_region) {
+        await updateCoupleLocation(couple.id, coupleLocation.trim());
+      }
       Alert.alert('Saved!');
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -444,10 +456,13 @@ export default function ProfileTab() {
               />
             </YStack>
             <YStack gap={spacing.xs}>
-              <Text fontSize={13} color={colors.textSecondary} fontWeight="600">Location</Text>
+              <Text fontSize={13} color={colors.textSecondary} fontWeight="600">Couple Location</Text>
+              <Text fontSize={12} color={colors.textSecondary}>
+                Used to filter date ideas for both of you.
+              </Text>
               <Input
-                value={location}
-                onChangeText={setLocation}
+                value={coupleLocation}
+                onChangeText={setCoupleLocation}
                 placeholder="e.g. Copenhagen"
                 height={48}
                 borderRadius={radii.md}
@@ -549,12 +564,7 @@ export default function ProfileTab() {
 }
 ```
 
-- [ ] **Step 2: Commit placeholder profile tab**
-
-```bash
-git add app/(tabs)/profile.tsx
-git commit -m "feat: add profile tab with user info and couple display"
-```
+> **Note:** `profile.tsx` references `<IdeaSubmissionForm>` which is created in Task 6. Do NOT commit `profile.tsx` until Task 6 is complete — commit both together in Task 6, Step 4.
 
 ---
 

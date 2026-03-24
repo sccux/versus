@@ -877,7 +877,8 @@ export default function SwipeTab() {
   const { ideas, loading, error, removeTop } = useIdeas({
     coupleId: couple?.id ?? '',
     userId: session?.user?.id ?? '',
-    locationRegion: user?.location_region ?? '',
+    // Use the couple's shared location_region (not individual user's) per spec
+    locationRegion: couple?.location_region ?? user?.location_region ?? '',
   });
 
   const [detailIdea, setDetailIdea] = useState<DbDateIdea | null>(null);
@@ -895,8 +896,9 @@ export default function SwipeTab() {
         { event: 'INSERT', schema: 'public', table: 'matches', filter: `couple_id=eq.${couple.id}` },
         async (payload) => {
           const match = payload.new as DbMatch;
-          // Find the idea in our local stack
-          const idea = ideas.find((i) => i.id === match.idea_id);
+          // Fetch the idea directly from DB — do NOT rely on local `ideas` state,
+          // because the user who completed the match will have already removed that card.
+          const idea = await getIdeaById(match.idea_id).catch(() => null);
           if (idea) setMatchedIdea(idea);
         }
       )

@@ -76,8 +76,9 @@ npx expo install @react-native-async-storage/async-storage
 - [ ] **Step 5: Install remaining feature deps**
 
 ```bash
-npx expo install expo-calendar expo-camera expo-image-picker expo-sharing expo-notifications expo-barcode-scanner
+npx expo install expo-calendar expo-camera expo-image-picker expo-sharing expo-notifications
 npx expo install react-native-qrcode-svg
+npx expo install @react-native-community/datetimepicker
 npx expo install @phosphor-icons/react-native   # icon set
 ```
 
@@ -426,11 +427,12 @@ create policy "Users can insert their own row"
 
 -- ─── COUPLES ──────────────────────────────────────────────────────────────────
 create table public.couples (
-  id          uuid primary key default uuid_generate_v4(),
-  user_a_id   uuid not null references public.users(id) on delete cascade,
-  user_b_id   uuid references public.users(id) on delete cascade,
-  invite_code text not null unique,
-  created_at  timestamptz not null default now()
+  id              uuid primary key default uuid_generate_v4(),
+  user_a_id       uuid not null references public.users(id) on delete cascade,
+  user_b_id       uuid references public.users(id) on delete cascade,
+  invite_code     text not null unique,
+  location_region text not null default '', -- shared couple location; defaults to user_a's region on pairing
+  created_at      timestamptz not null default now()
 );
 
 alter table public.couples enable row level security;
@@ -712,6 +714,7 @@ export interface DbCouple {
   user_a_id: string;
   user_b_id: string | null;
   invite_code: string;
+  location_region: string; // shared couple location for filtering date ideas
   created_at: string;
 }
 

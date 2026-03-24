@@ -264,15 +264,38 @@ export function generateInviteCode(): string {
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-export async function createCouple(userAId: string): Promise<DbCouple> {
+export async function getOrCreateCouple(userAId: string, userARegion: string): Promise<DbCouple> {
+  // Return existing unpaired couple row if one exists, to avoid orphaned rows
+  const existing = await getMyUnpairedCouple(userAId);
+  if (existing) return existing;
+
   const code = generateInviteCode();
   const { data, error } = await supabase
     .from('couples')
-    .insert({ user_a_id: userAId, invite_code: code })
+    .insert({ user_a_id: userAId, invite_code: code, location_region: userARegion })
     .select()
     .single();
   if (error) throw error;
   return data;
+}
+
+// Internal helper — finds an unpaired couple row started by this user
+async function getMyUnpairedCouple(userAId: string): Promise<DbCouple | null> {
+  const { data, error } = await supabase
+    .from('couples')
+    .select('*')
+    .eq('user_a_id', userAId)
+    .is('user_b_id', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
+// Kept for backward compat in tests — prefer getOrCreateCouple in UI
+export async function createCouple(userAId: string, locationRegion = ''): Promise<DbCouple> {
+  return getOrCreateCouple(userAId, locationRegion);
 }
 
 export async function joinCoupleByCode(userBId: string, code: string): Promise<DbCouple> {
@@ -295,6 +318,14 @@ export async function joinCoupleByCode(userBId: string, code: string): Promise<D
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function updateCoupleLocation(coupleId: string, locationRegion: string): Promise<void> {
+  const { error } = await supabase
+    .from('couples')
+    .update({ location_region: locationRegion })
+    .eq('id', coupleId);
+  if (error) throw error;
 }
 
 export async function getMyCouple(userId: string): Promise<DbCouple | null> {
@@ -743,11 +774,11 @@ git commit -m "feat: add login screen with email, google, and apple auth"
 
 ## Task 5: Splash Screen
 
-- [ ] **Step 1: Add Lottie placeholder**
+- [ ] **Step 1: Add Lottie logo animation**
 
-  Download a heart/logo Lottie animation from https://lottiefiles.com (search "heart burst" or "love"). Save it to `assets/animations/heart-burst.json`.
+  Download a simple logo/sparkle Lottie animation from https://lottiefiles.com (search "sparkle", "love logo", or "heart logo). Save it to `assets/animations/logo-intro.json`.
 
-  For now, also save a simple fade-in logo animation as `assets/animations/logo-intro.json` (or use the same file and just fade the emoji).
+  Note: `assets/animations/heart-burst.json` is a **separate** file used for the match reveal in Phase 3 — do not reuse `logo-intro.json` for that. They serve different moments in the app.
 
 - [ ] **Step 2: Create `app/splash.tsx`** (shown before auth redirects settle)
 
@@ -794,10 +825,11 @@ import { createCouple, joinCoupleByCode, buildInviteLink } from '@/lib/couples';
 
 interface Props {
   userId: string;
+  userRegion: string;
   onPaired: () => void;
 }
 
-export function InviteCodePanel({ userId, onPaired }: Props) {
+export function InviteCodePanel({ userId, userRegion, onPaired }: Props) {
   const [myCode, setMyCode] = useState<string | null>(null);
   const [enteredCode, setEnteredCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -805,7 +837,7 @@ export function InviteCodePanel({ userId, onPaired }: Props) {
   async function handleGenerate() {
     setLoading(true);
     try {
-      const couple = await createCouple(userId);
+      const couple = await getOrCreateCouple(userId, userRegion);
       setMyCode(couple.invite_code);
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -897,19 +929,20 @@ import { Alert, Share } from 'react-native';
 import { useState } from 'react';
 import { YStack, Text, Button, Spinner } from 'tamagui';
 import { colors, spacing, radii } from '@/constants/theme';
-import { createCouple, buildInviteLink } from '@/lib/couples';
+import { getOrCreateCouple, buildInviteLink } from '@/lib/couples';
 
 interface Props {
   userId: string;
+  userRegion: string;
 }
 
-export function InviteLinkPanel({ userId }: Props) {
+export function InviteLinkPanel({ userId, userRegion }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleShare() {
     setLoading(true);
     try {
-      const couple = await createCouple(userId);
+      const couple = await getOrCreateCouple(userId, userRegion);
       const url = buildInviteLink(couple.invite_code);
       await Share.share({
         message: `Join me on DateNu! Use this link to pair with me: ${url}`,
@@ -951,24 +984,26 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { YStack, XStack, Text, Button, Spinner } from 'tamagui';
 import QRCode from 'react-native-qrcode-svg';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { colors, spacing, radii } from '@/constants/theme';
-import { createCouple, buildInviteLink, joinCoupleByCode } from '@/lib/couples';
+import { getOrCreateCouple, buildInviteLink, joinCoupleByCode } from '@/lib/couples';
 
 interface Props {
   userId: string;
+  userRegion: string;
   onPaired: () => void;
 }
 
-export function QRPanel({ userId, onPaired }: Props) {
+export function QRPanel({ userId, userRegion, onPaired }: Props) {
   const [myCode, setMyCode] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   async function handleShowQR() {
     setLoading(true);
     try {
-      const couple = await createCouple(userId);
+      const couple = await getOrCreateCouple(userId, userRegion);
       setMyCode(couple.invite_code);
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -977,23 +1012,29 @@ export function QRPanel({ userId, onPaired }: Props) {
     }
   }
 
-  async function handleScan({ data }: { data: string }) {
+  async function handleStartScan() {
+    if (!permission?.granted) await requestPermission();
+    setScanning(true);
+  }
+
+  function handleScan({ data }: { data: string }) {
     setScanning(false);
     // data will be the deep link: datenu://pair?code=XXXXXX
     const match = data.match(/code=([A-Z0-9]{6})/);
     if (!match) return Alert.alert('Invalid QR code');
-    try {
-      await joinCoupleByCode(userId, match[1]);
-      onPaired();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    }
+    joinCoupleByCode(userId, match[1])
+      .then(onPaired)
+      .catch((e: any) => Alert.alert('Error', e.message));
   }
 
   if (scanning) {
     return (
       <YStack flex={1}>
-        <BarCodeScanner onBarCodeScanned={handleScan} style={{ flex: 1 }} />
+        <CameraView
+          style={{ flex: 1 }}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={handleScan}
+        />
         <Button onPress={() => setScanning(false)} marginTop={spacing.md}>
           <Text>Cancel</Text>
         </Button>
@@ -1058,10 +1099,11 @@ import { QRPanel } from '@/components/pairing/QRPanel';
 type Method = 'code' | 'link' | 'qr';
 
 export default function PairingScreen() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const { refresh } = useCouple(session?.user?.id);
   const [method, setMethod] = useState<Method>('code');
   const userId = session?.user?.id ?? '';
+  const userRegion = user?.location_region ?? '';
 
   function onPaired() {
     refresh(); // triggers auth guard to redirect to tabs
@@ -1101,9 +1143,9 @@ export default function PairingScreen() {
         </XStack>
 
         {/* Active method panel */}
-        {method === 'code' && <InviteCodePanel userId={userId} onPaired={onPaired} />}
-        {method === 'link' && <InviteLinkPanel userId={userId} />}
-        {method === 'qr' && <QRPanel userId={userId} onPaired={onPaired} />}
+        {method === 'code' && <InviteCodePanel userId={userId} userRegion={userRegion} onPaired={onPaired} />}
+        {method === 'link' && <InviteLinkPanel userId={userId} userRegion={userRegion} />}
+        {method === 'qr' && <QRPanel userId={userId} userRegion={userRegion} onPaired={onPaired} />}
       </YStack>
     </ScrollView>
   );
