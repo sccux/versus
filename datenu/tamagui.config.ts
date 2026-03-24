@@ -1,10 +1,11 @@
 import { createTamagui, createTokens } from '@tamagui/core';
 import { config as defaultConfig } from '@tamagui/config/v3';
-import { colors, radii, spacing, fontSizes } from '@/constants/theme';
+import { colors, radii, spacing } from '@/constants/theme';
 
 const tokens = createTokens({
   ...defaultConfig.tokens,
   color: {
+    ...defaultConfig.tokens.color,
     background: colors.background,
     textPrimary: colors.textPrimary,
     textSecondary: colors.textSecondary,
@@ -12,14 +13,18 @@ const tokens = createTokens({
     accentLight: colors.accentLight,
     surface: colors.surface,
     border: colors.border,
+    success: colors.success,
+    error: colors.error,
   },
   radius: {
+    ...defaultConfig.tokens.radius,
     sm: radii.sm,
     md: radii.md,
     lg: radii.lg,
     full: radii.full,
   },
   space: {
+    ...defaultConfig.tokens.space,
     xs: spacing.xs,
     sm: spacing.sm,
     md: spacing.md,
@@ -27,20 +32,23 @@ const tokens = createTokens({
     xl: spacing.xl,
     xxl: spacing.xxl,
   },
+  size: {
+    ...defaultConfig.tokens.size,
+  },
 });
 
 const config = createTamagui({
   ...defaultConfig,
   tokens,
   themes: {
+    ...defaultConfig.themes,
     light: {
       ...defaultConfig.themes.light,
-      background: colors.background,
-      color: colors.textPrimary,
-      borderColor: colors.border,
+      background: '$background',
+      color: '$textPrimary',
+      borderColor: '$border',
     },
   },
-  defaultTheme: 'light',
 });
 
 export type Conf = typeof config;
