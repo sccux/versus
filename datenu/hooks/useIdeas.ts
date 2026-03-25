@@ -15,6 +15,7 @@ export function useIdeas({ coupleId, userId, locationRegion }: UseIdeasParams) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       setError(null);
       const seenIds = await getSwipedIdeaIds(coupleId, userId);
