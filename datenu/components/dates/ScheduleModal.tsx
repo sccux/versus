@@ -3,6 +3,7 @@ import { Alert, Platform, Modal } from 'react-native';
 import { YStack, Text, Button, Spinner } from 'tamagui';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { scheduleMatch } from '@/lib/matches';
+import { scheduleDateReminder } from '@/lib/notifications';
 import { addDateToCalendar } from '@/lib/calendar';
 import { MatchWithIdea } from '@/lib/matches';
 import { colors, spacing, radii } from '@/constants/theme';
@@ -37,6 +38,14 @@ export function ScheduleModal({ match, onClose, onScheduled }: Props) {
         scheduledAt: date,
         calendarEventId,
       });
+      const now = new Date();
+      const reminderDate = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+      if (reminderDate > now) {
+        await scheduleDateReminder({
+          ideaTitle: match!.date_ideas.title,
+          scheduledAt: date,
+        }).catch(console.error); // non-fatal
+      }
       onScheduled();
       onClose();
     } catch (e: any) {
