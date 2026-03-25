@@ -44,7 +44,7 @@ function AuthGuard() {
     } else {
       if (inAuthGroup || inPairing) router.replace('/(tabs)');
     }
-  }, [session, couple, authLoading, coupleLoading]);
+  }, [session, couple, authLoading, coupleLoading, segments, router]);
 
   return null;
 }
