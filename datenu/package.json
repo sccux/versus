@@ -47,14 +47,25 @@
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
+    "babel-plugin-dynamic-import-node": "^2.3.3",
     "jest": "^30.3.0",
     "jest-expo": "^55.0.11",
+    "react-dom": "^19.2.0",
     "typescript": "~5.9.2"
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFilesAfterEnv": ["@testing-library/react-native/extend-expect"],
+    "setupFiles": [
+      "<rootDir>/jest.setup.ts"
+    ],
+    "setupFilesAfterEnv": [
+      "@testing-library/react-native/matchers"
+    ],
+    "moduleNameMapper": {
+      "^@react-native-async-storage/async-storage$": "@react-native-async-storage/async-storage/jest/async-storage-mock"
+    },
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-qrcode-svg|react-native-gesture-handler|react-native-safe-area-context|react-native-screens|react-native-worklets|phosphor-react-native|tamagui|@tamagui/.*|lottie-react-native))"
     ]
