@@ -44,16 +44,17 @@ export default function LoginScreen() {
   async function handleGoogleSignIn() {
     setLoading(true);
     try {
+      const redirectUri = makeRedirectUri({ scheme: 'datenu' });
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: makeRedirectUri({ scheme: 'datenu' }),
+          redirectTo: redirectUri,
           skipBrowserRedirect: true,
         },
       });
       if (error) throw error;
       if (data.url) {
-        const result = await WebBrowser.openAuthSessionAsync(data.url, makeRedirectUri({ scheme: 'datenu' }));
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
         if (result.type === 'success') {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
@@ -81,16 +82,17 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
+      const redirectUri = makeRedirectUri({ scheme: 'datenu' });
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: makeRedirectUri({ scheme: 'datenu' }),
+          redirectTo: redirectUri,
           skipBrowserRedirect: true,
         },
       });
       if (error) throw error;
       if (data.url) {
-        const result = await WebBrowser.openAuthSessionAsync(data.url, makeRedirectUri({ scheme: 'datenu' }));
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
         if (result.type === 'success') {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
