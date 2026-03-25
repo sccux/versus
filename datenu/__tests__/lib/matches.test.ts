@@ -64,5 +64,7 @@ describe('completeMatch', () => {
     expect(insertChain.insert).toHaveBeenCalledWith(
       expect.objectContaining({ match_id: 'match-1', rating: 5, note: 'Amazing!' })
     );
+    expect(supabase.from).toHaveBeenCalledWith('matches');
+    expect(updateChain.update).toHaveBeenCalledWith({ status: 'completed' });
   });
 });
