@@ -5,7 +5,7 @@ import config from '@/tamagui.config';
 import { VibeTags } from '@/components/ui/VibeTags';
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <TamaguiProvider config={config}>{children}</TamaguiProvider>
+  <TamaguiProvider config={config} defaultTheme="light">{children}</TamaguiProvider>
 );
 
 describe('VibeTags', () => {
