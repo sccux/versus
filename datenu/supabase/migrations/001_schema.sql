@@ -1,6 +1,3 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- ─── USERS ────────────────────────────────────────────────────────────────────
 create table public.users (
   id              uuid primary key references auth.users(id) on delete cascade,
@@ -26,7 +23,7 @@ create policy "Users can insert their own row"
 
 -- ─── COUPLES ──────────────────────────────────────────────────────────────────
 create table public.couples (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default gen_random_uuid(),
   user_a_id       uuid not null references public.users(id) on delete cascade,
   user_b_id       uuid references public.users(id) on delete cascade,
   invite_code     text not null unique,
@@ -48,7 +45,7 @@ create policy "user_b can accept invite (update user_b_id)"
 
 -- ─── DATE IDEAS ───────────────────────────────────────────────────────────────
 create table public.date_ideas (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default gen_random_uuid(),
   title           text not null,
   tagline         text not null,
   photo_url       text not null,
@@ -73,7 +70,7 @@ create policy "Authenticated users can submit ideas"
 
 -- ─── SWIPES ───────────────────────────────────────────────────────────────────
 create table public.swipes (
-  id         uuid primary key default uuid_generate_v4(),
+  id         uuid primary key default gen_random_uuid(),
   couple_id  uuid not null references public.couples(id) on delete cascade,
   user_id    uuid not null references public.users(id) on delete cascade,
   idea_id    uuid not null references public.date_ideas(id) on delete cascade,
@@ -105,7 +102,7 @@ create policy "Couple members can read swipes for their couple"
 
 -- ─── MATCHES ──────────────────────────────────────────────────────────────────
 create table public.matches (
-  id         uuid primary key default uuid_generate_v4(),
+  id         uuid primary key default gen_random_uuid(),
   couple_id  uuid not null references public.couples(id) on delete cascade,
   idea_id    uuid not null references public.date_ideas(id) on delete cascade,
   matched_at timestamptz not null default now(),
@@ -138,7 +135,7 @@ create policy "Couple members can update match status"
 
 -- ─── SCHEDULED DATES ──────────────────────────────────────────────────────────
 create table public.scheduled_dates (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   match_id          uuid not null references public.matches(id) on delete cascade,
   scheduled_at      timestamptz not null,
   calendar_event_id text,
@@ -159,7 +156,7 @@ create policy "Couple members can manage their scheduled dates"
 
 -- ─── DATE MEMORIES ────────────────────────────────────────────────────────────
 create table public.date_memories (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   match_id     uuid not null references public.matches(id) on delete cascade,
   note         text,
   rating       int check (rating between 1 and 5),
