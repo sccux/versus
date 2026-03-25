@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import config from '@/tamagui.config';
 import { useAuth } from '@/hooks/useAuth';
 import { useCouple } from '@/hooks/useCouple';
+import { registerPushToken } from '@/lib/notifications';
 
 export const PENDING_INVITE_KEY = 'pendingInviteCode';
 
@@ -45,6 +46,12 @@ function AuthGuard() {
       if (inAuthGroup || inPairing) router.replace('/(tabs)');
     }
   }, [session, couple, authLoading, coupleLoading, segments, router]);
+
+  useEffect(() => {
+    if (session?.user?.id && !authLoading) {
+      registerPushToken(session.user.id).catch(console.error);
+    }
+  }, [session?.user?.id, authLoading]);
 
   return null;
 }
