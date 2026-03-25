@@ -65,7 +65,7 @@ function SwipeableCard({
     .enabled(isTop)
     .onEnd(() => runOnJS(onPress)());
 
-  const composedGesture = Gesture.Simultaneous(gesture, tapGesture);
+  const composedGesture = Gesture.Exclusive(gesture, tapGesture);
 
   const animStyle = useAnimatedStyle(() => {
     const rotate = interpolate(translateX.value, [-SCREEN_WIDTH, SCREEN_WIDTH], [-15, 15], Extrapolation.CLAMP);
