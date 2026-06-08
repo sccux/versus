@@ -6,9 +6,10 @@ type Props = {
   comparison: Comparison
   initialCounts: VoteCounts
   initialVote?: 'a' | 'b' | null
+  isLoggedIn?: boolean
 }
 
-export function VoteCard({ comparison, initialCounts, initialVote = null }: Props) {
+export function VoteCard({ comparison, initialCounts, initialVote = null, isLoggedIn = false }: Props) {
   const [counts, setCounts] = useState(initialCounts)
   const [voted, setVoted] = useState<'a' | 'b' | null>(initialVote)
   const [loading, setLoading] = useState(false)
@@ -67,7 +68,7 @@ export function VoteCard({ comparison, initialCounts, initialVote = null }: Prop
         ))}
       </div>
 
-      {voted && (
+      {voted && !isLoggedIn && (
         <div className="mt-6 p-4 rounded-2xl bg-gray-900 text-center">
           <p className="text-gray-400 text-sm">
             Earn tokens when you vote —{' '}

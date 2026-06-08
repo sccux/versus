@@ -23,13 +23,20 @@ export async function recordVoteAndMaybeAwardToken(
   const newVoteCount = user.vote_count + 1
   const award = shouldAwardToken(newVoteCount)
 
-  await supabase
+  // Optimistic lock: only update if vote_count hasn't changed since we read it.
+  // This significantly reduces (but does not fully eliminate) the race window.
+  // TODO: replace with a Postgres RPC (atomic increment) before high-traffic production use.
+  const { data: updated } = await supabase
     .from('users')
     .update({
       vote_count: newVoteCount,
       ...(award ? { token_balance: user.token_balance + 1 } : {}),
     })
     .eq('id', userId)
+    .eq('vote_count', user.vote_count)
+    .select('vote_count')
+
+  if (!updated || updated.length === 0) return false // stale read — another request beat us
 
   if (award) {
     await supabase.from('token_transactions').insert({
@@ -59,10 +66,18 @@ export async function spendTokenForFeedPost(
 
   if (!user || user.token_balance < 1) return false
 
-  await supabase
+  // Optimistic lock: only deduct if token_balance hasn't changed since we read it.
+  // Prevents double-spends in concurrent requests. The CHECK constraint (token_balance >= 0)
+  // in the DB is the final safety net.
+  // TODO: replace with a Postgres RPC for fully atomic decrement before production.
+  const { data: updated } = await supabase
     .from('users')
     .update({ token_balance: user.token_balance - 1 })
     .eq('id', userId)
+    .eq('token_balance', user.token_balance)
+    .select('token_balance')
+
+  if (!updated || updated.length === 0) return false // stale read — balance already changed
 
   await supabase.from('token_transactions').insert({
     user_id: userId,

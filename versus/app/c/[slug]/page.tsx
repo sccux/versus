@@ -42,7 +42,7 @@ export default async function VotePage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
-      <VoteCard comparison={comparison} initialCounts={counts} initialVote={initialVote} />
+      <VoteCard comparison={comparison} initialCounts={counts} initialVote={initialVote} isLoggedIn={!!user} />
     </main>
   )
 }
