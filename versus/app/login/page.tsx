@@ -3,8 +3,6 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,12 +10,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const supabase = createClient()
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const supabase = createClient()
     const { error } = await (mode === 'signin'
       ? supabase.auth.signInWithPassword({ email, password })
       : supabase.auth.signUp({ email, password }))
@@ -26,7 +24,6 @@ export default function LoginPage() {
   }
 
   async function handleGoogle() {
-    const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${location.origin}/api/auth/callback?next=/create` },
