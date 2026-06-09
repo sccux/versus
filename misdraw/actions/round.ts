@@ -46,7 +46,7 @@ export async function startRound(roomId: string): Promise<string> {
   const word = pickWord();
 
   const firstPlayerId = turnOrder[0];
-  const startsAt = new Date(Date.now() + 3000).toISOString();
+  const startsAt = new Date().toISOString();
 
   const { data: round, error } = await supabase
     .from('rounds')
@@ -107,7 +107,7 @@ export async function advanceTurn(roundId: string, completedPlayerId: string): P
     (rp) => rp.has_drawn || rp.player_id === completedPlayerId
   );
 
-  const startsAt = new Date(Date.now() + 3000).toISOString();
+  const startsAt = new Date().toISOString();
 
   if (allDrewThisRotation) {
     await supabase

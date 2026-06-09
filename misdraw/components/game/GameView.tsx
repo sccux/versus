@@ -5,7 +5,6 @@ import DrawingCanvas from './DrawingCanvas';
 import ChatPanel from './ChatPanel';
 import PlayerTopBar from './PlayerTopBar';
 import ControlsBar from './ControlsBar';
-import TurnTimer from './TurnTimer';
 import VotingOverlay from './VotingOverlay';
 import RoleReveal from './RoleReveal';
 import { useGameChannel } from '@/hooks/useGameChannel';
@@ -160,13 +159,6 @@ export default function GameView({
             onStrokeEnd={handleStrokeEnd}
             incomingPoint={lastStrokePoint}
             strokeEnded={lastStrokeEnd}
-          />
-          <TurnTimer
-            turnStartedAt={round.turn_started_at}
-            currentTurnPlayerId={round.current_turn_player_id}
-            myPlayerId={currentPlayerId}
-            players={players.map((p) => ({ id: p.id, nickname: p.nickname, color: p.color }))}
-            onTurnEnd={handleStrokeEnd}
           />
         </div>
 
