@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { uploadComparisonImage } from '@/lib/upload'
 import { createComparisonAction } from '@/app/create/actions'
 import { isRedirectError } from 'next/dist/client/components/redirect'
@@ -13,7 +13,26 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function pickFile(side: 'a' | 'b', file: File) {
+  const multiInputRef = useRef<HTMLInputElement>(null)
+  const slotBInputRef = useRef<HTMLInputElement>(null)
+
+  function applyFiles(files: File[]) {
+    if (files[0]) {
+      setFileA(files[0])
+      setPreviewA(URL.createObjectURL(files[0]))
+    }
+    if (files[1]) {
+      setFileB(files[1])
+      setPreviewB(URL.createObjectURL(files[1]))
+    }
+  }
+
+  function handleMultiSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []).slice(0, 2)
+    applyFiles(files)
+  }
+
+  function handleSlotReplace(side: 'a' | 'b', file: File) {
     const url = URL.createObjectURL(file)
     if (side === 'a') { setFileA(file); setPreviewA(url) }
     else { setFileB(file); setPreviewB(url) }
@@ -22,7 +41,7 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = e.currentTarget
-    if (!fileA || !fileB) { setError('Upload both images'); return }
+    if (!fileA || !fileB) { setError('Add both images to continue'); return }
     setUploading(true)
     setError(null)
 
@@ -46,34 +65,69 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
     }
   }
 
+  const bothSelected = fileA && fileB
+  const oneSelected = (fileA || fileB) && !bothSelected
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full max-w-xl">
-      <div className="grid grid-cols-2 gap-4">
-        {(['a', 'b'] as const).map(side => {
-          const preview = side === 'a' ? previewA : previewB
-          return (
-            <label
-              key={side}
-              className="aspect-square rounded-2xl border-2 border-dashed border-gray-700 hover:border-gray-500 transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-gray-900"
-            >
-              {preview ? (
-                <img src={preview} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center p-4">
-                  <div className="text-4xl mb-2 text-gray-600">+</div>
-                  <div className="text-gray-500 text-sm">Option {side.toUpperCase()}</div>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => e.target.files?.[0] && pickFile(side, e.target.files[0])}
-              />
-            </label>
-          )
-        })}
-      </div>
+
+      {/* Step 1: no images selected — single upload prompt */}
+      {!fileA && !fileB && (
+        <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-700 hover:border-gray-500 transition-colors cursor-pointer bg-gray-900 py-12 px-6 text-center">
+          <div className="text-4xl text-gray-600">↑</div>
+          <div className="text-white font-medium">Select images to compare</div>
+          <div className="text-gray-500 text-sm">Pick 2 at once, or start with 1</div>
+          <input
+            ref={multiInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleMultiSelect}
+          />
+        </label>
+      )}
+
+      {/* Step 2: previews once at least one image is selected */}
+      {(fileA || fileB) && (
+        <div className="grid grid-cols-2 gap-4">
+          {/* Slot A */}
+          <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-700 hover:border-gray-500 transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-gray-900">
+            {previewA ? (
+              <img src={previewA} alt="Option A" className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-center p-4">
+                <div className="text-3xl mb-2 text-gray-600">+</div>
+                <div className="text-gray-500 text-sm">Add second image</div>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => e.target.files?.[0] && handleSlotReplace('a', e.target.files[0])}
+            />
+          </label>
+
+          {/* Slot B */}
+          <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-700 hover:border-gray-500 transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-gray-900">
+            {previewB ? (
+              <img src={previewB} alt="Option B" className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-center p-4">
+                <div className="text-3xl mb-2 text-gray-600">+</div>
+                <div className="text-gray-500 text-sm">Add second image</div>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => e.target.files?.[0] && handleSlotReplace('b', e.target.files[0])}
+            />
+          </label>
+        </div>
+      )}
 
       <input
         name="question"
