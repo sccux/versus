@@ -115,12 +115,12 @@ export default function DrawingCanvas({
   }, [onStrokeEnd]);
 
   return (
-    <div className={`relative w-full h-full ${frozen ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={`relative w-full h-full flex items-center justify-center ${frozen ? 'opacity-50 pointer-events-none' : ''}`}>
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="w-full h-full bg-white rounded-lg touch-none"
+        className="max-w-full max-h-full aspect-[4/3] bg-white rounded-lg touch-none"
         style={{ cursor: isMyTurn && !frozen ? 'crosshair' : 'default' }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
