@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { uploadComparisonImage } from '@/lib/upload'
 import { createComparisonAction } from '@/app/create/actions'
+import { isRedirectError } from 'next/dist/client/components/redirect'
 
 export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
   const [fileA, setFileA] = useState<File | null>(null)
@@ -39,6 +40,7 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
 
       await createComparisonAction(formData)
     } catch (err) {
+      if (isRedirectError(err)) throw err
       setError(err instanceof Error ? err.message : 'Something went wrong')
       setUploading(false)
     }
