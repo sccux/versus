@@ -1,0 +1,5 @@
+.worktrees
+misdraw/.env.local
+misdraw/.next/
+misdraw/node_modules/
+.superpowers/
