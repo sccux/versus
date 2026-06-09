@@ -20,6 +20,7 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const form = e.currentTarget
     if (!fileA || !fileB) { setError('Upload both images'); return }
     setUploading(true)
     setError(null)
@@ -31,7 +32,7 @@ export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
         uploadComparisonImage(fileB, uploadId, 'b'),
       ])
 
-      const formData = new FormData(e.currentTarget)
+      const formData = new FormData(form)
       formData.set('imageAUrl', imageAUrl)
       formData.set('imageBUrl', imageBUrl)
       formData.set('postToFeed', String(postToFeed))
