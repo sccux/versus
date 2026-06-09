@@ -25,6 +25,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
   const [currentPlayerId, setCurrentPlayerId] = useState('');
   const [prevScores, setPrevScores] = useState<Record<string, number>>({});
   const roundStartedRef = useRef(false);
+  const currentPlayerIdRef = useRef('');
 
   const supabase = createClient();
 
@@ -34,7 +35,10 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
   // Read player ID from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(`misdraw_player_${initialRoom.code}`);
-    if (stored) setCurrentPlayerId(stored);
+    if (stored) {
+      currentPlayerIdRef.current = stored;
+      setCurrentPlayerId(stored);
+    }
   }, [initialRoom.code]);
 
   // Mark connected on mount, disconnected on unmount
@@ -62,8 +66,12 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
         { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${room.id}` },
         async (payload) => {
           const updated = payload.new as Room;
-          // When room transitions from lobby to playing, start the first round
-          if (updated.status === 'playing' && !roundStartedRef.current) {
+          // Only the host's client starts the round (prevents multi-client race)
+          if (
+            updated.status === 'playing' &&
+            !roundStartedRef.current &&
+            currentPlayerIdRef.current === updated.host_player_id
+          ) {
             roundStartedRef.current = true;
             await startRound(room.id);
           }

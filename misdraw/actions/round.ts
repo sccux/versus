@@ -8,6 +8,21 @@ import { checkWinCondition } from '@/lib/game/winCondition';
 export async function startRound(roomId: string): Promise<string> {
   const supabase = await createClient();
 
+  // Idempotency guard: if an active round already exists, return it
+  const { data: existingRoom } = await supabase
+    .from('rooms')
+    .select('current_round_id')
+    .eq('id', roomId)
+    .single();
+  if (existingRoom?.current_round_id) {
+    const { data: activeRound } = await supabase
+      .from('rounds')
+      .select('id, status')
+      .eq('id', existingRoom.current_round_id)
+      .single();
+    if (activeRound && activeRound.status !== 'finished') return activeRound.id;
+  }
+
   const { data: existingRounds } = await supabase
     .from('rounds')
     .select('round_number')

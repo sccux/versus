@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback, useTransition, useEffect } from 'react';
 import DrawingCanvas from './DrawingCanvas';
 import ChatPanel from './ChatPanel';
 import PlayerTopBar from './PlayerTopBar';
@@ -36,7 +36,13 @@ export default function GameView({
   const [lastStrokePoint, setLastStrokePoint] = useState<StrokePoint | null>(null);
   const [lastStrokeEnd, setLastStrokeEnd] = useState<string | null>(null);
   const [roleRevealDismissed, setRoleRevealDismissed] = useState(false);
+  const [turnEnded, setTurnEnded] = useState(false);
   const [, startTransition] = useTransition();
+
+  // Reset turn-ended guard when the active player changes
+  useEffect(() => {
+    setTurnEnded(false);
+  }, [round.current_turn_player_id]);
 
   const myRoundPlayer = roundPlayers.find((rp) => rp.player_id === currentPlayerId);
   const isMyTurn = round.current_turn_player_id === currentPlayerId;
@@ -80,12 +86,13 @@ export default function GameView({
   );
 
   const handleStrokeEnd = useCallback(() => {
-    if (!isMyTurn || !myPlayer) return;
+    if (!isMyTurn || !myPlayer || turnEnded) return;
+    setTurnEnded(true);
     broadcastStrokeEnd(currentPlayerId);
     startTransition(async () => {
       await advanceTurn(round.id, currentPlayerId);
     });
-  }, [isMyTurn, currentPlayerId, round.id, broadcastStrokeEnd, myPlayer, startTransition]);
+  }, [isMyTurn, currentPlayerId, round.id, broadcastStrokeEnd, myPlayer, startTransition, turnEnded]);
 
   function handleSendChat(text: string) {
     if (!myPlayer) return;
@@ -103,6 +110,11 @@ export default function GameView({
 
   const showRoleReveal = !roleRevealDismissed && !!myRoundPlayer;
   const frozen = round.status === 'voting';
+  const canDraw = isMyTurn && !frozen && !turnEnded;
+
+  const currentDrawer = players.find((p) => p.id === round.current_turn_player_id);
+  const myRole = myRoundPlayer?.role;
+  const myWord = myRole === 'artist' ? round.word : null;
 
   return (
     <div className="h-screen bg-gray-950 flex flex-col gap-2 p-2 overflow-hidden">
@@ -115,10 +127,32 @@ export default function GameView({
         aliveImposters={aliveImposters}
       />
 
+      {/* Turn + role status bar */}
+      <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-900 text-sm">
+        <span className={canDraw ? 'text-green-400 font-semibold' : 'text-gray-400'}>
+          {canDraw
+            ? '✏️ Your turn — draw now!'
+            : turnEnded && isMyTurn
+            ? '✓ Done — waiting for next turn'
+            : `${currentDrawer?.nickname ?? '...'} is drawing`}
+        </span>
+        {myRole && (
+          <span
+            className="font-medium px-2 py-0.5 rounded"
+            style={{
+              background: myRole === 'artist' ? '#1a3a2a' : '#2a1a1a',
+              color: myRole === 'artist' ? '#6BCB77' : '#FF6B6B',
+            }}
+          >
+            {myRole === 'artist' ? `🎨 Artist — "${myWord}"` : '🕵️ Imposter'}
+          </span>
+        )}
+      </div>
+
       <div className="flex gap-2 flex-1 min-h-0">
         <div className="flex-1 relative min-w-0">
           <DrawingCanvas
-            isMyTurn={isMyTurn && !frozen}
+            isMyTurn={canDraw}
             myPlayerId={currentPlayerId}
             myColor={myPlayer?.color ?? '#ffffff'}
             frozen={frozen}
