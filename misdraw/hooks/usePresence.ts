@@ -20,8 +20,13 @@ export function usePresence(
 ) {
   const [presentPlayers, setPresentPlayers] = useState<PresencePlayer[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const roundIdRef = useRef(roundId);
   const supabase = createClient();
 
+  // Keep roundId ref current without triggering channel reconnect
+  roundIdRef.current = roundId;
+
+  // Only rebuild channel when room or player identity changes
   useEffect(() => {
     if (!currentPlayerId) return;
 
@@ -35,11 +40,11 @@ export function usePresence(
         setPresentPlayers(Object.values(state).flat());
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        if (!roundId) return;
+        if (!roundIdRef.current) return;
         leftPresences.forEach((p) => {
           const player = p as unknown as PresencePlayer;
           if (player.player_id && player.player_id !== currentPlayerId) {
-            handlePlayerDrop(player.player_id, roundId);
+            handlePlayerDrop(player.player_id, roundIdRef.current!);
           }
         });
       })
@@ -50,8 +55,18 @@ export function usePresence(
       });
 
     channelRef.current = channel;
-    return () => { supabase.removeChannel(channel); };
-  }, [roomCode, currentPlayerId, nickname, color, roundId]);
+    return () => {
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
+  }, [roomCode, currentPlayerId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-track when nickname/color resolves (without rebuilding the channel)
+  useEffect(() => {
+    if (channelRef.current && currentPlayerId && nickname) {
+      channelRef.current.track({ player_id: currentPlayerId, nickname, color });
+    }
+  }, [nickname, color, currentPlayerId]);
 
   return presentPlayers;
 }
