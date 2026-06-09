@@ -30,6 +30,12 @@ export default function DrawingCanvas({
   const remoteDrawing = useRef<Record<string, boolean>>({});
   const lastRemotePoint = useRef<Record<string, { x: number; y: number }>>({});
   const throttleRef = useRef<number>(0);
+  const turnLockedRef = useRef(false);
+
+  // Unlock when a new turn is assigned to us
+  useEffect(() => {
+    if (isMyTurn) turnLockedRef.current = false;
+  }, [isMyTurn]);
 
   function getPos(e: React.PointerEvent<HTMLCanvasElement>) {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -80,7 +86,7 @@ export default function DrawingCanvas({
   }, [strokeEnded]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isMyTurn || frozen) return;
+    if (!isMyTurn || frozen || turnLockedRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.setPointerCapture(e.pointerId);
@@ -111,6 +117,7 @@ export default function DrawingCanvas({
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPoint.current = null;
+    turnLockedRef.current = true; // lock immediately before React re-renders
     onStrokeEnd();
   }, [onStrokeEnd]);
 
