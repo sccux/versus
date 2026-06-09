@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import type { StrokePoint } from '@/hooks/useGameChannel';
 
 interface Props {
@@ -10,20 +10,17 @@ interface Props {
   frozen: boolean;
   onStrokePoint: (point: StrokePoint) => void;
   onStrokeEnd: () => void;
-  incomingPoint: StrokePoint | null;
-  strokeEnded: string | null;
 }
 
-export default function DrawingCanvas({
-  isMyTurn,
-  myPlayerId,
-  myColor,
-  frozen,
-  onStrokePoint,
-  onStrokeEnd,
-  incomingPoint,
-  strokeEnded,
-}: Props) {
+export interface DrawingCanvasHandle {
+  drawRemotePoint: (point: StrokePoint) => void;
+  endRemoteStroke: (playerId: string) => void;
+}
+
+const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(function DrawingCanvas(
+  { isMyTurn, myPlayerId, myColor, frozen, onStrokePoint, onStrokeEnd },
+  ref
+) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
@@ -32,7 +29,6 @@ export default function DrawingCanvas({
   const throttleRef = useRef<number>(0);
   const turnLockedRef = useRef(false);
 
-  // Unlock when a new turn is assigned to us
   useEffect(() => {
     if (isMyTurn) turnLockedRef.current = false;
   }, [isMyTurn]);
@@ -63,27 +59,26 @@ export default function DrawingCanvas({
     ctx.stroke();
   }
 
-  useEffect(() => {
-    if (!incomingPoint) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const pid = incomingPoint.player_id;
-    if (incomingPoint.is_start) {
-      remoteDrawing.current[pid] = true;
-      lastRemotePoint.current[pid] = { x: incomingPoint.x, y: incomingPoint.y };
-    } else if (remoteDrawing.current[pid] && lastRemotePoint.current[pid]) {
-      drawSegment(ctx, lastRemotePoint.current[pid], { x: incomingPoint.x, y: incomingPoint.y }, incomingPoint.color);
-      lastRemotePoint.current[pid] = { x: incomingPoint.x, y: incomingPoint.y };
-    }
-  }, [incomingPoint]);
-
-  useEffect(() => {
-    if (!strokeEnded) return;
-    remoteDrawing.current[strokeEnded] = false;
-  }, [strokeEnded]);
+  // Exposed directly so callers bypass React state batching
+  useImperativeHandle(ref, () => ({
+    drawRemotePoint(point: StrokePoint) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const pid = point.player_id;
+      if (point.is_start) {
+        remoteDrawing.current[pid] = true;
+        lastRemotePoint.current[pid] = { x: point.x, y: point.y };
+      } else if (remoteDrawing.current[pid] && lastRemotePoint.current[pid]) {
+        drawSegment(ctx, lastRemotePoint.current[pid], { x: point.x, y: point.y }, point.color);
+        lastRemotePoint.current[pid] = { x: point.x, y: point.y };
+      }
+    },
+    endRemoteStroke(playerId: string) {
+      remoteDrawing.current[playerId] = false;
+    },
+  }));
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isMyTurn || frozen || turnLockedRef.current) return;
@@ -117,7 +112,7 @@ export default function DrawingCanvas({
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPoint.current = null;
-    turnLockedRef.current = true; // lock immediately before React re-renders
+    turnLockedRef.current = true;
     onStrokeEnd();
   }, [onStrokeEnd]);
 
@@ -143,4 +138,6 @@ export default function DrawingCanvas({
       )}
     </div>
   );
-}
+});
+
+export default DrawingCanvas;

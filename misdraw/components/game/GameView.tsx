@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useTransition, useEffect } from 'react';
+import { useState, useCallback, useTransition, useEffect, useRef } from 'react';
 import DrawingCanvas from './DrawingCanvas';
+import type { DrawingCanvasHandle } from './DrawingCanvas';
 import ChatPanel from './ChatPanel';
 import PlayerTopBar from './PlayerTopBar';
 import ControlsBar from './ControlsBar';
@@ -32,13 +33,11 @@ export default function GameView({
   votes,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [lastStrokePoint, setLastStrokePoint] = useState<StrokePoint | null>(null);
-  const [lastStrokeEnd, setLastStrokeEnd] = useState<string | null>(null);
   const [roleRevealDismissed, setRoleRevealDismissed] = useState(false);
   const [turnEnded, setTurnEnded] = useState(false);
   const [, startTransition] = useTransition();
+  const canvasRef = useRef<DrawingCanvasHandle>(null);
 
-  // Reset turn-ended guard when the active player changes
   useEffect(() => {
     setTurnEnded(false);
   }, [round.current_turn_player_id]);
@@ -70,17 +69,22 @@ export default function GameView({
 
   const voteEntries = votes.map((v) => ({ voter_id: v.voter_id, target_id: v.target_id }));
 
+  // Draw directly on canvas ref — bypasses React state batching so no points are dropped
   const { broadcastStrokePoint, broadcastStrokeEnd, broadcastChatMessage } = useGameChannel({
     roomCode: room.code,
-    onStrokePoint: setLastStrokePoint,
-    onStrokeEnd: setLastStrokeEnd,
-    onChatMessage: (msg) => setMessages((prev) => [...prev, msg]),
+    onStrokePoint: useCallback((point: StrokePoint) => {
+      canvasRef.current?.drawRemotePoint(point);
+    }, []),
+    onStrokeEnd: useCallback((playerId: string) => {
+      canvasRef.current?.endRemoteStroke(playerId);
+    }, []),
+    onChatMessage: useCallback((msg: ChatMessage) => {
+      setMessages((prev) => [...prev, msg]);
+    }, []),
   });
 
   const handleStrokePoint = useCallback(
-    (point: StrokePoint) => {
-      broadcastStrokePoint(point);
-    },
+    (point: StrokePoint) => broadcastStrokePoint(point),
     [broadcastStrokePoint]
   );
 
@@ -151,14 +155,13 @@ export default function GameView({
       <div className="flex gap-2 flex-1 min-h-0">
         <div className="flex-1 relative min-w-0">
           <DrawingCanvas
+            ref={canvasRef}
             isMyTurn={canDraw}
             myPlayerId={currentPlayerId}
             myColor={myPlayer?.color ?? '#ffffff'}
             frozen={frozen}
             onStrokePoint={handleStrokePoint}
             onStrokeEnd={handleStrokeEnd}
-            incomingPoint={lastStrokePoint}
-            strokeEnded={lastStrokeEnd}
           />
         </div>
 
