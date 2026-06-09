@@ -2,20 +2,38 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/hooks/useGameChannel';
+import VotingPanel from './VotingPanel';
+
+export interface SystemMessage {
+  id: string;
+  text: string;
+}
+
+export interface VotingPanelProps {
+  voteSessionId: string;
+  currentPlayerId: string;
+  alivePlayers: { id: string; nickname: string; color: string }[];
+  voterIds: string[];
+  myVoteTargetId: string | null;
+  isAlive: boolean;
+  totalVoters: number;
+}
 
 interface Props {
   messages: ChatMessage[];
+  systemMessages: SystemMessage[];
   onSend: (text: string) => void;
   isDeadPlayer: boolean;
+  voting?: VotingPanelProps | null;
 }
 
-export default function ChatPanel({ messages, onSend, isDeadPlayer }: Props) {
+export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlayer, voting }: Props) {
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, systemMessages]);
 
   const visibleMessages = isDeadPlayer
     ? messages
@@ -40,9 +58,23 @@ export default function ChatPanel({ messages, onSend, isDeadPlayer }: Props) {
             <span className="text-gray-300">{msg.text}</span>
           </div>
         ))}
+        {systemMessages.map((sm) => (
+          <div key={sm.id} className="text-sm text-center py-1">
+            <span className="bg-gray-800 text-gray-400 px-3 py-1 rounded-full text-xs">
+              {sm.text}
+            </span>
+          </div>
+        ))}
         <div ref={bottomRef} />
       </div>
-      <div className="p-2 border-t border-gray-800 flex gap-2">
+
+      {voting && (
+        <div className="px-3 pt-1 flex-shrink-0">
+          <VotingPanel {...voting} />
+        </div>
+      )}
+
+      <div className="p-2 border-t border-gray-800 flex gap-2 flex-shrink-0">
         <input
           type="text"
           value={input}

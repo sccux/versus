@@ -6,6 +6,7 @@ import { markConnected } from '@/actions/room';
 import { startRound } from '@/actions/round';
 import LobbyView from '@/components/lobby/LobbyView';
 import GameView from '@/components/game/GameView';
+import type { VoteResult } from '@/components/game/GameView';
 import RoundEndView from '@/components/round/RoundEndView';
 import { usePresence } from '@/hooks/usePresence';
 import type { Player, Room, Round, RoundPlayer, VoteSession, Vote } from '@/lib/supabase/types';
@@ -22,6 +23,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
   const [roundPlayers, setRoundPlayers] = useState<RoundPlayer[]>([]);
   const [activeVoteSession, setActiveVoteSession] = useState<VoteSession | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
+  const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
   const [currentPlayerId, setCurrentPlayerId] = useState('');
   const [prevScores, setPrevScores] = useState<Record<string, number>>({});
   const roundStartedRef = useRef(false);
@@ -102,6 +104,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
     // Reset state for new round
     setVotes([]);
     setActiveVoteSession(null);
+    setVoteResult(null);
     roundStartedRef.current = false;
 
     const fetchAll = async () => {
@@ -138,15 +141,16 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'vote_sessions', filter: `round_id=eq.${room.current_round_id}` },
-        async () => {
-          const { data } = await supabase
-            .from('vote_sessions')
-            .select('*')
-            .eq('round_id', room.current_round_id!)
-            .eq('status', 'active')
-            .maybeSingle();
-          setActiveVoteSession(data ?? null);
-          if (data) setVotes([]);
+        (payload) => {
+          const session = payload.new as VoteSession;
+          if (!session?.status) return;
+          if (session.status === 'resolved') {
+            setVoteResult({ id: session.id, killed_player_id: session.killed_player_id });
+            setActiveVoteSession(null);
+          } else if (session.status === 'active') {
+            setActiveVoteSession(session);
+            setVotes([]);
+          }
         }
       )
       .subscribe();
@@ -263,6 +267,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       currentPlayerId={currentPlayerId}
       activeVoteSession={activeVoteSession}
       votes={votes}
+      voteResult={voteResult}
     />
   );
 }
