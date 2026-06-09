@@ -1,6 +1,3 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- Enums
 create type room_status as enum ('lobby', 'playing', 'finished');
 create type round_status as enum ('drawing', 'voting', 'finished');
@@ -10,7 +7,7 @@ create type vote_session_status as enum ('active', 'resolved');
 
 -- rooms
 create table rooms (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   code text unique not null,
   status room_status not null default 'lobby',
   host_player_id uuid,
@@ -20,7 +17,7 @@ create table rooms (
 
 -- players
 create table players (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   room_id uuid not null references rooms(id) on delete cascade,
   user_id uuid references auth.users(id),
   nickname text not null,
@@ -37,7 +34,7 @@ alter table rooms
 
 -- rounds
 create table rounds (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   room_id uuid not null references rooms(id) on delete cascade,
   round_number int not null,
   word text not null,
@@ -56,7 +53,7 @@ alter table rooms
 
 -- round_players
 create table round_players (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   round_id uuid not null references rounds(id) on delete cascade,
   player_id uuid not null references players(id) on delete cascade,
   role player_role not null,
@@ -68,7 +65,7 @@ create table round_players (
 
 -- vote_sessions
 create table vote_sessions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   round_id uuid not null references rounds(id) on delete cascade,
   initiated_by uuid not null references players(id),
   status vote_session_status not null default 'active',
@@ -78,7 +75,7 @@ create table vote_sessions (
 
 -- votes
 create table votes (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   vote_session_id uuid not null references vote_sessions(id) on delete cascade,
   voter_id uuid not null references players(id),
   target_id uuid not null references players(id),
