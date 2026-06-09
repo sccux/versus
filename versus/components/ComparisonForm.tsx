@@ -2,7 +2,14 @@
 import { useRef, useState } from 'react'
 import { uploadComparisonImage } from '@/lib/upload'
 import { createComparisonAction } from '@/app/create/actions'
-import { isRedirectError } from 'next/dist/client/components/redirect'
+function isRedirectError(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    'digest' in err &&
+    typeof (err as { digest: unknown }).digest === 'string' &&
+    (err as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+  )
+}
 
 export function ComparisonForm({ tokenBalance }: { tokenBalance: number }) {
   const [fileA, setFileA] = useState<File | null>(null)
