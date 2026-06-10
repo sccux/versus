@@ -17,6 +17,7 @@ interface Props {
   myVoteTargetId: string | null;
   isAlive: boolean;
   totalVoters: number;
+  onVoted?: (targetId: string) => void;
 }
 
 export default function VotingPanel({
@@ -27,12 +28,16 @@ export default function VotingPanel({
   myVoteTargetId,
   isAlive,
   totalVoters,
+  onVoted,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const hasVoted = !!myVoteTargetId;
 
   function vote(targetId: string) {
     if (hasVoted || !isAlive || isPending) return;
+    // Update local state immediately — realtime postgres_changes events
+    // for `votes` can be delayed/missed for the voter's own client
+    onVoted?.(targetId);
     startTransition(async () => {
       await castVote(voteSessionId, currentPlayerId, targetId);
     });

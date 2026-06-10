@@ -17,6 +17,7 @@ export interface VotingPanelProps {
   myVoteTargetId: string | null;
   isAlive: boolean;
   totalVoters: number;
+  onVoted?: (targetId: string) => void;
 }
 
 interface Props {

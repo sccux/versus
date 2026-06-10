@@ -28,6 +28,7 @@ interface Props {
   votes: Vote[];
   voteResult: VoteResult | null;
   refreshRound: () => void;
+  onVoteCast: (targetId: string) => void;
 }
 
 export default function GameView({
@@ -40,6 +41,7 @@ export default function GameView({
   votes,
   voteResult,
   refreshRound,
+  onVoteCast,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
@@ -106,6 +108,7 @@ export default function GameView({
           myVoteTargetId: myVote?.target_id ?? null,
           isAlive,
           totalVoters: alivePlayers.length,
+          onVoted: onVoteCast,
         }
       : null;
 

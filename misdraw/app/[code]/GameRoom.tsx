@@ -203,6 +203,25 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
     if (data) setRound(data);
   }, [room.current_round_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Optimistically record a vote locally — postgres_changes INSERT events
+  // for `votes` can be delayed/missed for the voter's own client
+  const onVoteCast = useCallback((targetId: string) => {
+    if (!activeVoteSession) return;
+    setVotes((prev) => {
+      if (prev.some((v) => v.voter_id === currentPlayerId)) return prev;
+      return [
+        ...prev,
+        {
+          id: `optimistic-${currentPlayerId}`,
+          vote_session_id: activeVoteSession.id,
+          voter_id: currentPlayerId,
+          target_id: targetId,
+          created_at: new Date().toISOString(),
+        },
+      ];
+    });
+  }, [activeVoteSession, currentPlayerId]);
+
   // Snapshot scores before round ends (for delta display)
   useEffect(() => {
     if (round?.status === 'finished') {
@@ -288,6 +307,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       votes={votes}
       voteResult={voteResult}
       refreshRound={refreshRound}
+      onVoteCast={onVoteCast}
     />
   );
 }
