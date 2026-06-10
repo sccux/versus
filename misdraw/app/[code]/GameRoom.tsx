@@ -8,6 +8,8 @@ import LobbyView from '@/components/lobby/LobbyView';
 import GameView from '@/components/game/GameView';
 import type { VoteResult } from '@/components/game/GameView';
 import RoundEndView from '@/components/round/RoundEndView';
+import { isRoundTrigger } from '@/lib/game/roundTrigger';
+import CouchHostView from '@/components/couch/CouchHostView';
 import { usePresence } from '@/hooks/usePresence';
 import type { Player, Room, Round, RoundPlayer, VoteSession, Vote } from '@/lib/supabase/types';
 
@@ -25,6 +27,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
   const [currentPlayerId, setCurrentPlayerId] = useState('');
+  const [playerIdLoaded, setPlayerIdLoaded] = useState(false);
   const [prevScores, setPrevScores] = useState<Record<string, number>>({});
   const roundStartedRef = useRef(false);
   const currentPlayerIdRef = useRef('');
@@ -41,6 +44,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       currentPlayerIdRef.current = stored;
       setCurrentPlayerId(stored);
     }
+    setPlayerIdLoaded(true);
   }, [initialRoom.code]);
 
   // Mark connected on mount, disconnected on unmount
@@ -68,11 +72,12 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
         { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${room.id}` },
         async (payload) => {
           const updated = payload.new as Room;
-          // Only the host's client starts the round (prevents multi-client race)
+          // Only the round-trigger client starts the round (prevents multi-client race)
           if (
             updated.status === 'playing' &&
             !roundStartedRef.current &&
-            currentPlayerIdRef.current === updated.host_player_id
+            playerIdLoaded &&
+            isRoundTrigger(updated.mode, currentPlayerIdRef.current, updated.host_player_id)
           ) {
             roundStartedRef.current = true;
             await startRound(room.id);
@@ -95,7 +100,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [room.id]);
+  }, [room.id, playerIdLoaded]);
 
   // Fallback poll: if a postgres_changes event for `rooms` is missed/delayed,
   // a client can get stuck on "Starting round..." forever waiting for
@@ -255,11 +260,28 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
     }
   }, [round?.status]);
 
-  if (!currentPlayerId) {
+  if (!playerIdLoaded) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <p className="text-gray-500">Loading...</p>
       </div>
+    );
+  }
+
+  const isCouchHost = room.mode === 'couch' && !currentPlayerId;
+
+  if (isCouchHost) {
+    return (
+      <CouchHostView
+        room={room}
+        players={players}
+        round={round}
+        roundPlayers={roundPlayers}
+        activeVoteSession={activeVoteSession}
+        votes={votes}
+        voteResult={voteResult}
+        prevScores={prevScores}
+      />
     );
   }
 
@@ -283,7 +305,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
         roundWord={round.word}
         players={players.filter((p) => p.is_connected)}
         currentPlayerId={currentPlayerId}
-        isHost={currentPlayerId === room.host_player_id}
+        isRoundTrigger={isRoundTrigger(room.mode, currentPlayerId, room.host_player_id)}
       />
     );
   }
