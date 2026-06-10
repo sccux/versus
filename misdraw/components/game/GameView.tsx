@@ -27,6 +27,7 @@ interface Props {
   activeVoteSession: VoteSession | null;
   votes: Vote[];
   voteResult: VoteResult | null;
+  refreshRound: () => void;
 }
 
 export default function GameView({
@@ -38,6 +39,7 @@ export default function GameView({
   activeVoteSession,
   votes,
   voteResult,
+  refreshRound,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
@@ -115,7 +117,9 @@ export default function GameView({
     }, []),
     onStrokeEnd: useCallback((playerId: string) => {
       canvasRef.current?.endRemoteStroke(playerId);
-    }, []),
+      // A turn just ended elsewhere — make sure our round state isn't stale
+      refreshRound();
+    }, [refreshRound]),
     onChatMessage: useCallback((msg: ChatMessage) => {
       setMessages((prev) => [...prev, msg]);
       if (activeTabRef.current !== 'chat') {
@@ -135,8 +139,9 @@ export default function GameView({
     broadcastStrokeEnd(currentPlayerId);
     startTransition(async () => {
       await advanceTurn(round.id, currentPlayerId);
+      refreshRound();
     });
-  }, [isMyTurn, currentPlayerId, round.id, broadcastStrokeEnd, myPlayer, startTransition, turnEnded]);
+  }, [isMyTurn, currentPlayerId, round.id, broadcastStrokeEnd, myPlayer, startTransition, turnEnded, refreshRound]);
 
   function handleSendChat(text: string) {
     if (!myPlayer) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { markConnected } from '@/actions/room';
 import { startRound } from '@/actions/round';
@@ -125,7 +125,14 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'rounds', filter: `id=eq.${room.current_round_id}` },
-        (payload) => setRound(payload.new as Round)
+        async () => {
+          const { data } = await supabase
+            .from('rounds')
+            .select('*')
+            .eq('id', room.current_round_id!)
+            .single();
+          if (data) setRound(data);
+        }
       )
       .on(
         'postgres_changes',
@@ -183,6 +190,18 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
 
     return () => { supabase.removeChannel(channel); };
   }, [activeVoteSession?.id]);
+
+  // Force a fresh fetch of round state — used as a fallback when a postgres_changes
+  // event for `rounds` is missed/delayed for a particular client
+  const refreshRound = useCallback(async () => {
+    if (!room.current_round_id) return;
+    const { data } = await supabase
+      .from('rounds')
+      .select('*')
+      .eq('id', room.current_round_id)
+      .single();
+    if (data) setRound(data);
+  }, [room.current_round_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Snapshot scores before round ends (for delta display)
   useEffect(() => {
@@ -268,6 +287,7 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       activeVoteSession={activeVoteSession}
       votes={votes}
       voteResult={voteResult}
+      refreshRound={refreshRound}
     />
   );
 }
