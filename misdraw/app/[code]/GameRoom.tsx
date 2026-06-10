@@ -97,6 +97,24 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [room.id]);
 
+  // Fallback poll: if a postgres_changes event for `rooms` is missed/delayed,
+  // a client can get stuck on "Starting round..." forever waiting for
+  // current_round_id. Poll until it shows up.
+  useEffect(() => {
+    if (room.status !== 'playing' || room.current_round_id) return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('id', room.id)
+        .single();
+      if (data && data.current_round_id) setRoom(data);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [room.status, room.current_round_id, room.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Round subscription (re-runs when current_round_id changes)
   useEffect(() => {
     if (!room.current_round_id) return;
