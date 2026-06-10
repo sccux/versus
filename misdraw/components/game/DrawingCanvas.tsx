@@ -10,6 +10,7 @@ interface Props {
   frozen: boolean;
   onStrokePoint: (point: StrokePoint) => void;
   onStrokeEnd: () => void;
+  showWaitingOverlay?: boolean;
 }
 
 export interface DrawingCanvasHandle {
@@ -18,7 +19,7 @@ export interface DrawingCanvasHandle {
 }
 
 const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(function DrawingCanvas(
-  { isMyTurn, myPlayerId, myColor, frozen, onStrokePoint, onStrokeEnd },
+  { isMyTurn, myPlayerId, myColor, frozen, onStrokePoint, onStrokeEnd, showWaitingOverlay = true },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -129,7 +130,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(function DrawingCan
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       />
-      {!isMyTurn && (
+      {!isMyTurn && showWaitingOverlay && (
         <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none">
           <span className="text-ink-muted text-sm bg-paper/70 border border-ink-muted px-3 py-1 rounded-full">
             waiting for your turn...
