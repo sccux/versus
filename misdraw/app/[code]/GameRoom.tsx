@@ -202,7 +202,13 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'votes', filter: `vote_session_id=eq.${activeVoteSession.id}` },
-        (payload) => setVotes((prev) => [...prev, payload.new as Vote])
+        (payload) => {
+          const vote = payload.new as Vote;
+          setVotes((prev) => {
+            const withoutOptimistic = prev.filter((v) => v.voter_id !== vote.voter_id);
+            return [...withoutOptimistic, vote];
+          });
+        }
       )
       .subscribe();
 
