@@ -93,6 +93,14 @@ export async function markConnected(
     .eq('id', playerId);
 }
 
+export async function setPlayerReady(playerId: string, ready: boolean): Promise<void> {
+  const supabase = await createClient();
+  await supabase
+    .from('players')
+    .update({ is_ready: ready })
+    .eq('id', playerId);
+}
+
 export async function startGame(roomId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase

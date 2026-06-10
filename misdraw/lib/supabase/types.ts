@@ -21,6 +21,7 @@ export interface Player {
   color: string;
   score: number;
   is_connected: boolean;
+  is_ready: boolean;
   created_at: string;
 }
 

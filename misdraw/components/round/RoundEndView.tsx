@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useRef } from 'react';
 import { startRound } from '@/actions/round';
+import { setPlayerReady } from '@/actions/room';
 
 interface PlayerScore {
   id: string;
@@ -11,21 +12,50 @@ interface PlayerScore {
   scoreDelta: number;
 }
 
+interface ReadyPlayer {
+  id: string;
+  nickname: string;
+  color: string;
+  is_ready: boolean;
+}
+
 interface Props {
   winner: 'artists' | 'imposters';
   scores: PlayerScore[];
   roomId: string;
   roundWord: string;
+  players: ReadyPlayer[];
+  currentPlayerId: string;
+  isHost: boolean;
 }
 
-export default function RoundEndView({ winner, scores, roomId, roundWord }: Props) {
-  const [countdown, setCountdown] = useState(5);
-  const [isPending, startTransition] = useTransition();
-  const [started, setStarted] = useState(false);
+export default function RoundEndView({
+  winner,
+  scores,
+  roomId,
+  roundWord,
+  players,
+  currentPlayerId,
+  isHost,
+}: Props) {
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
+  const startedRef = useRef(false);
 
+  const me = players.find((p) => p.id === currentPlayerId);
+  const isReady = me?.is_ready ?? false;
+  const allReady = players.length > 0 && players.every((p) => p.is_ready);
+
+  // Start the 3-2-1 countdown once everyone is ready
   useEffect(() => {
+    if (!allReady) {
+      setCountdown(null);
+      return;
+    }
+    setCountdown(3);
     const id = setInterval(() => {
       setCountdown((c) => {
+        if (c === null) return null;
         if (c <= 1) {
           clearInterval(id);
           return 0;
@@ -34,23 +64,20 @@ export default function RoundEndView({ winner, scores, roomId, roundWord }: Prop
       });
     }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [allReady]);
 
+  // Once the countdown reaches 0, the host starts the next round
   useEffect(() => {
-    if (countdown === 0 && !started) {
-      setStarted(true);
+    if (countdown === 0 && !startedRef.current && isHost) {
+      startedRef.current = true;
       startTransition(async () => {
         await startRound(roomId);
       });
     }
-  }, [countdown, started, roomId]);
+  }, [countdown, isHost, roomId]);
 
-  function handleNext() {
-    if (started) return;
-    setStarted(true);
-    startTransition(async () => {
-      await startRound(roomId);
-    });
+  function toggleReady() {
+    setPlayerReady(currentPlayerId, !isReady);
   }
 
   const sorted = [...scores].sort((a, b) => b.score - a.score);
@@ -99,13 +126,45 @@ export default function RoundEndView({ winner, scores, roomId, roundWord }: Prop
           ))}
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={isPending || started}
-          className="w-full bg-white text-gray-950 font-semibold rounded-xl py-3 hover:bg-gray-100 transition-colors disabled:opacity-50"
-        >
-          {isPending || started ? 'Starting...' : `Start Now (${countdown}s)`}
-        </button>
+        {countdown !== null ? (
+          <div className="text-center py-3">
+            <p className="text-gray-400 text-sm mb-1">Everyone&apos;s ready — next round in</p>
+            <p className="text-4xl font-bold text-white">{countdown}</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-gray-900 rounded-xl overflow-hidden mb-4">
+              <div className="px-4 py-3 border-b border-gray-800">
+                <p className="text-gray-400 text-sm font-medium">Waiting for everyone to be ready</p>
+              </div>
+              {players.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center px-4 py-3 border-b border-gray-800 last:border-0"
+                >
+                  <span className="flex-1 font-medium" style={{ color: p.color }}>
+                    {p.nickname}
+                    {p.id === currentPlayerId && ' (you)'}
+                  </span>
+                  <span className={`text-sm font-medium ${p.is_ready ? 'text-green-400' : 'text-gray-600'}`}>
+                    {p.is_ready ? '✓ Ready' : 'Not ready'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={toggleReady}
+              className={`w-full font-semibold rounded-xl py-3 transition-colors ${
+                isReady
+                  ? 'bg-gray-800 text-white hover:bg-gray-700'
+                  : 'bg-white text-gray-950 hover:bg-gray-100'
+              }`}
+            >
+              {isReady ? 'Cancel' : "I'm Ready"}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

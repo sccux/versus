@@ -281,6 +281,9 @@ export default function GameRoom({ initialRoom, initialPlayers }: Props) {
         scores={scores}
         roomId={room.id}
         roundWord={round.word}
+        players={players.filter((p) => p.is_connected)}
+        currentPlayerId={currentPlayerId}
+        isHost={currentPlayerId === room.host_player_id}
       />
     );
   }

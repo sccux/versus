@@ -40,6 +40,12 @@ export async function startRound(roomId: string): Promise<string> {
 
   if (!players || players.length < 3) throw new Error('Not enough players');
 
+  // Reset ready state for the next round-end screen
+  await supabase
+    .from('players')
+    .update({ is_ready: false })
+    .eq('room_id', roomId);
+
   const playerIds = players.map((p) => p.id);
   const roles = assignRoles(playerIds);
   const turnOrder = shuffleTurnOrder(playerIds);
