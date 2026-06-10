@@ -2,24 +2,29 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { assignColor, PLAYER_COLORS } from '@/lib/game/colors';
-
-function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+import { generateCode } from '@/lib/game/roomCode';
+import type { RoomMode } from '@/lib/supabase/types';
 
 export async function createRoom(
-  nickname: string
-): Promise<{ code: string; playerId: string }> {
+  mode: RoomMode,
+  nickname?: string
+): Promise<{ code: string; playerId: string | null }> {
   const supabase = await createClient();
-  const code = generateCode();
+  const code = generateCode(mode);
 
   const { data: room, error: roomError } = await supabase
     .from('rooms')
-    .insert({ code, status: 'lobby' })
+    .insert({ code, status: 'lobby', mode })
     .select()
     .single();
 
   if (roomError) throw new Error(roomError.message);
+
+  if (mode === 'couch') {
+    return { code, playerId: null };
+  }
+
+  if (!nickname) throw new Error('Nickname is required for online rooms');
 
   const { data: player, error: playerError } = await supabase
     .from('players')
