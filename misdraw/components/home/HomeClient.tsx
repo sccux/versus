@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createRoom, joinRoom } from '@/actions/room';
 import { isCouchCode } from '@/lib/game/roomCode';
 
 export default function HomeClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const codeFromUrl = (searchParams.get('code') ?? '').toUpperCase().slice(0, 6);
   const [isPending, startTransition] = useTransition();
-  const [tab, setTab] = useState<'create' | 'join'>('create');
+  const [tab, setTab] = useState<'create' | 'join'>(codeFromUrl ? 'join' : 'create');
   const [createMode, setCreateMode] = useState<'online' | 'couch'>('online');
   const [nickname, setNickname] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(codeFromUrl);
   const [error, setError] = useState('');
 
   async function handleCreate() {

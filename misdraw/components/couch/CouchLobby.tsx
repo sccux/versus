@@ -16,7 +16,7 @@ export default function CouchLobby({ room, players }: Props) {
   const connectedPlayers = players.filter((p) => p.is_connected);
 
   if (typeof window !== 'undefined' && !joinUrl) {
-    setJoinUrl(`${window.location.origin}/${room.code}`);
+    setJoinUrl(`${window.location.origin}/?code=${room.code}`);
   }
 
   function handleStart() {
