@@ -1,4 +1,5 @@
 export type RoomStatus = 'lobby' | 'playing' | 'finished';
+export type RoomMode = 'online' | 'couch';
 export type RoundStatus = 'drawing' | 'voting' | 'finished';
 export type PlayerRole = 'artist' | 'imposter';
 export type RoundWinner = 'artists' | 'imposters';
@@ -8,6 +9,7 @@ export interface Room {
   id: string;
   code: string;
   status: RoomStatus;
+  mode: RoomMode;
   host_player_id: string | null;
   current_round_id: string | null;
   created_at: string;
