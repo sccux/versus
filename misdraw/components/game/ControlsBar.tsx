@@ -22,7 +22,7 @@ export default function ControlsBar({
 
   if (!isAlive) {
     return (
-      <div className="px-4 py-2 bg-gray-900 rounded-lg text-center text-gray-500 text-sm">
+      <div className="px-4 py-2 ink-panel text-center text-ink-muted text-sm">
         You have been eliminated. You can still watch and chat.
       </div>
     );
@@ -31,8 +31,8 @@ export default function ControlsBar({
   const canCallVote = canVote && roundStatus === 'drawing';
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-gray-900 rounded-lg">
-      <span className="text-gray-500 text-sm">
+    <div className="flex items-center justify-between px-4 py-2 ink-panel">
+      <span className="text-ink-muted text-sm">
         {canCallVote
           ? 'First rotation complete — vote available'
           : 'Vote available after everyone draws once'}
@@ -44,7 +44,7 @@ export default function ControlsBar({
             await initiateVote(roundId, currentPlayerId);
           })
         }
-        className="bg-red-600 hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        className="border-2 border-ink rounded-full text-ink text-sm font-medium px-4 py-2 hover:bg-ink/10 disabled:border-ink-muted disabled:text-ink-muted disabled:cursor-not-allowed transition-colors"
       >
         ⚖️ Call Vote
       </button>

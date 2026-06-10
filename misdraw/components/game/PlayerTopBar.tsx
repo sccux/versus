@@ -51,7 +51,7 @@ export default function PlayerTopBar({
     : `${currentDrawerName || '...'} is drawing`;
 
   return (
-    <div className="bg-gray-900 rounded-lg overflow-hidden flex-shrink-0">
+    <div className="ink-panel overflow-hidden flex-shrink-0">
       {/* Row 1: Player chips + round stats */}
       <div className="flex items-center gap-2 px-3 py-2">
         <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto">
@@ -63,19 +63,23 @@ export default function PlayerTopBar({
             return (
               <div
                 key={p.id}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 transition-all border ${
                   isAlive ? 'opacity-100' : 'opacity-30 line-through'
-                } ${isActive ? 'ring-1 ring-white/60' : ''}`}
-                style={{ backgroundColor: `${p.color}22`, color: p.color }}
+                } ${
+                  isActive
+                    ? 'border-2 border-ink shadow-[2px_2px_0_var(--color-ink)]'
+                    : 'border-ink-muted'
+                }`}
+                style={{ color: p.color }}
               >
-                {isActive && <span>✏️</span>}
+                {isActive && <span>● ✏️</span>}
                 {p.nickname}
                 {!isAlive && ' 💀'}
               </div>
             );
           })}
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 flex-shrink-0 pl-1">
+        <div className="flex items-center gap-2 text-xs text-ink-muted flex-shrink-0 pl-1">
           <span>R{roundNumber}</span>
           <span>
             <span className="text-green-500">{aliveArtists}A</span>
@@ -86,26 +90,20 @@ export default function PlayerTopBar({
       </div>
 
       {/* Row 2: Turn status + role pill */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-t border-gray-800">
+      <div className="flex items-center justify-between px-3 py-1.5 ink-divider">
         <span
-          className={`text-sm ${
+          className={`font-hand text-lg ${
             canDraw
-              ? 'text-green-400 font-semibold'
+              ? 'text-green-400'
               : frozen
               ? 'text-yellow-400'
-              : 'text-gray-400'
+              : 'text-ink-muted'
           }`}
         >
           {turnText}
         </span>
         {myRole && (
-          <span
-            className="text-xs font-medium px-2 py-0.5 rounded"
-            style={{
-              background: myRole === 'artist' ? '#1a3a2a' : '#2a1a1a',
-              color: myRole === 'artist' ? '#6BCB77' : '#FF6B6B',
-            }}
-          >
+          <span className="text-xs font-medium px-2 py-0.5 rounded border-2 border-dashed border-ink text-ink">
             {myRole === 'artist' ? `🎨 "${myWord}"` : '🕵️ Imposter'}
           </span>
         )}

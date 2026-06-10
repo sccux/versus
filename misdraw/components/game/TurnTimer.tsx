@@ -69,12 +69,12 @@ export default function TurnTimer({
       {phase === 'countdown' && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg z-10">
           <div className="text-center">
-            <p className="text-white text-sm mb-1">
+            <p className="text-ink text-sm mb-1">
               {isMyTurn ? 'Your turn!' : `${currentPlayer?.nickname ?? '...'}'s turn`}
             </p>
             <p
-              className="text-8xl font-bold"
-              style={{ color: currentPlayer?.color ?? '#fff' }}
+              className="font-hand text-8xl"
+              style={{ color: currentPlayer?.color ?? 'var(--color-ink)' }}
             >
               {countdownNum}
             </p>
@@ -82,12 +82,12 @@ export default function TurnTimer({
         </div>
       )}
       {phase === 'drawing' && (
-        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-700 rounded-b-lg overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-ink-muted rounded-b-lg overflow-hidden">
           <div
             className="h-full transition-none rounded-b-lg"
             style={{
               width: `${progress * 100}%`,
-              backgroundColor: currentPlayer?.color ?? '#fff',
+              backgroundColor: currentPlayer?.color ?? 'var(--color-ink)',
             }}
           />
         </div>

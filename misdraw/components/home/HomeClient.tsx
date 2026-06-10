@@ -43,24 +43,24 @@ export default function HomeClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-4xl font-bold text-white text-center mb-2">misdraw</h1>
-        <p className="text-gray-400 text-center mb-8 text-sm">draw. deceive. survive.</p>
+        <h1 className="font-hand text-5xl text-ink text-center mb-2">misdraw</h1>
+        <p className="text-ink-muted text-center mb-8 text-sm">draw. deceive. survive.</p>
 
-        <div className="flex mb-6 bg-gray-900 rounded-lg p-1">
+        <div className="flex mb-6 ink-panel p-1">
           <button
             onClick={() => setTab('create')}
-            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-              tab === 'create' ? 'bg-white text-gray-950' : 'text-gray-400 hover:text-white'
+            className={`flex-1 py-2 rounded-md text-sm font-hand transition-colors ${
+              tab === 'create' ? 'border-2 border-ink text-ink' : 'text-ink-muted hover:text-ink'
             }`}
           >
             Create Room
           </button>
           <button
             onClick={() => setTab('join')}
-            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-              tab === 'join' ? 'bg-white text-gray-950' : 'text-gray-400 hover:text-white'
+            className={`flex-1 py-2 rounded-md text-sm font-hand transition-colors ${
+              tab === 'join' ? 'border-2 border-ink text-ink' : 'text-ink-muted hover:text-ink'
             }`}
           >
             Join Room
@@ -74,7 +74,7 @@ export default function HomeClient() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
-            className="w-full bg-gray-900 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-white/20 placeholder:text-gray-600"
+            className="w-full bg-panel text-ink rounded-lg px-4 py-3 outline-none border border-ink-muted focus:border-ink placeholder:text-ink-muted"
           />
 
           {tab === 'join' && (
@@ -84,7 +84,7 @@ export default function HomeClient() {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               maxLength={6}
-              className="w-full bg-gray-900 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-white/20 placeholder:text-gray-600 font-mono tracking-widest"
+              className="w-full bg-panel text-ink rounded-lg px-4 py-3 outline-none border border-ink-muted focus:border-ink placeholder:text-ink-muted font-mono tracking-widest"
             />
           )}
 
@@ -93,7 +93,7 @@ export default function HomeClient() {
           <button
             onClick={tab === 'create' ? handleCreate : handleJoin}
             disabled={isPending}
-            className="w-full bg-white text-gray-950 font-semibold rounded-lg py-3 hover:bg-gray-100 transition-colors disabled:opacity-50"
+            className="w-full border-2 border-ink rounded-lg text-ink font-semibold py-3 hover:bg-ink/10 transition-colors disabled:border-ink-muted disabled:text-ink-muted disabled:cursor-not-allowed"
           >
             {isPending ? 'Loading...' : tab === 'create' ? 'Create Room' : 'Join Room'}
           </button>

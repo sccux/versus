@@ -48,7 +48,7 @@ export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlay
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full ink-panel overflow-hidden">
       <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
         {visibleMessages.map((msg, i) => (
           <div key={i} className={`text-sm ${msg.is_dead ? 'opacity-50' : ''}`}>
@@ -56,12 +56,12 @@ export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlay
               {msg.nickname}
               {msg.is_dead && ' 💀'}:
             </span>{' '}
-            <span className="text-gray-300">{msg.text}</span>
+            <span className="text-ink">{msg.text}</span>
           </div>
         ))}
         {systemMessages.map((sm) => (
           <div key={sm.id} className="text-sm text-center py-1">
-            <span className="bg-gray-800 text-gray-400 px-3 py-1 rounded-full text-xs">
+            <span className="border border-dashed border-ink-muted text-ink-muted px-3 py-1 rounded-full text-xs">
               {sm.text}
             </span>
           </div>
@@ -75,7 +75,7 @@ export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlay
         </div>
       )}
 
-      <div className="p-2 border-t border-gray-800 flex gap-2 flex-shrink-0">
+      <div className="p-2 ink-divider flex gap-2 flex-shrink-0">
         <input
           type="text"
           value={input}
@@ -83,11 +83,11 @@ export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlay
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder={isDeadPlayer ? 'Ghost chat...' : 'Say something...'}
           maxLength={200}
-          className="flex-1 bg-gray-800 text-white rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/20 placeholder:text-gray-600"
+          className="flex-1 bg-paper text-ink border border-ink-muted rounded px-3 py-2 text-sm outline-none focus:border-ink placeholder:text-ink-muted"
         />
         <button
           onClick={handleSend}
-          className="bg-gray-700 hover:bg-gray-600 text-white rounded px-3 py-2 text-sm transition-colors"
+          className="border-2 border-ink rounded-full text-ink px-3 py-2 text-sm hover:bg-ink/10 transition-colors"
         >
           ↵
         </button>

@@ -117,12 +117,12 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(function DrawingCan
   }, [onStrokeEnd]);
 
   return (
-    <div className={`relative w-full h-full flex items-center justify-center ${frozen ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={`relative w-full h-full flex items-center justify-center ink-panel paper-noise overflow-hidden ${frozen ? 'opacity-50 pointer-events-none' : ''}`}>
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="max-w-full max-h-full aspect-[4/3] bg-white rounded-lg touch-none"
+        className="max-w-full max-h-full aspect-[4/3] bg-canvas rounded-lg touch-none"
         style={{ cursor: isMyTurn && !frozen ? 'crosshair' : 'default' }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -131,7 +131,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, Props>(function DrawingCan
       />
       {!isMyTurn && (
         <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none">
-          <span className="text-gray-400 text-sm bg-black/30 px-3 py-1 rounded-full">
+          <span className="text-ink-muted text-sm bg-paper/70 border border-ink-muted px-3 py-1 rounded-full">
             waiting for your turn...
           </span>
         </div>

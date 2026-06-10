@@ -45,8 +45,8 @@ export default function VotingPanel({
 
   if (!isAlive) {
     return (
-      <div className="border-t border-gray-700 pt-3 mt-1">
-        <p className="text-xs text-gray-500 text-center py-2">
+      <div className="ink-divider pt-3 mt-1">
+        <p className="text-xs text-ink-muted text-center py-2">
           ⚖️ Voting in progress — {voterIds.length}/{totalVoters} voted
         </p>
       </div>
@@ -54,8 +54,8 @@ export default function VotingPanel({
   }
 
   return (
-    <div className="border-t border-gray-700 pt-3 mt-1">
-      <p className="text-xs text-gray-400 font-semibold mb-2 tracking-wide uppercase">
+    <div className="ink-divider pt-3 mt-1">
+      <p className="font-hand text-lg mb-2">
         ⚖️ Who is the imposter?
       </p>
       <div className="flex flex-col gap-1.5 mb-2">
@@ -68,21 +68,23 @@ export default function VotingPanel({
               disabled={isMe || hasVoted || isPending}
               onClick={() => vote(player.id)}
               className={[
-                'w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                isMyVote ? 'ring-2 ring-white/30 bg-gray-700' : 'bg-gray-800',
-                !isMe && !hasVoted ? 'hover:bg-gray-700 cursor-pointer' : 'cursor-default',
+                'w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border-2',
+                isMyVote
+                  ? 'border-ink shadow-[2px_2px_0_var(--color-ink)]'
+                  : 'border-ink-muted',
+                !isMe && !hasVoted ? 'hover:bg-ink/10 cursor-pointer' : 'cursor-default',
                 isMe || (hasVoted && !isMyVote) ? 'opacity-40' : '',
               ].join(' ')}
               style={{ color: player.color }}
             >
               {player.nickname}
-              {isMe && <span className="text-gray-500 text-xs ml-2">(you)</span>}
-              {isMyVote && <span className="text-white/40 text-xs ml-2">✓ voted</span>}
+              {isMe && <span className="text-ink-muted text-xs ml-2">(you)</span>}
+              {isMyVote && <span className="text-ink-muted text-xs ml-2">✓ voted</span>}
             </button>
           );
         })}
       </div>
-      <p className="text-xs text-gray-600 text-center pb-1">
+      <p className="text-xs text-ink-muted text-center pb-1">
         {voterIds.length}/{totalVoters} voted
       </p>
     </div>

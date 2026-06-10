@@ -83,36 +83,32 @@ export default function RoundEndView({
   const sorted = [...scores].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div
-          className={`text-center mb-6 p-6 rounded-2xl ${
-            winner === 'artists' ? 'bg-green-900/30' : 'bg-red-900/30'
-          }`}
-        >
-          <p className="text-gray-400 text-sm mb-1">Round over</p>
+        <div className="ink-panel text-center mb-6 p-6">
+          <p className="text-ink-muted text-sm mb-1">Round over</p>
           <h2
-            className={`text-3xl font-bold ${
+            className={`font-hand text-3xl ${
               winner === 'artists' ? 'text-green-400' : 'text-red-400'
             }`}
           >
             {winner === 'artists' ? '🎨 Artists Win!' : '🕵️ Imposters Win!'}
           </h2>
-          <p className="text-gray-500 text-sm mt-2">
-            The word was: <span className="text-white font-medium">{roundWord}</span>
+          <p className="text-ink-muted text-sm mt-2">
+            The word was: <span className="text-ink font-medium">{roundWord}</span>
           </p>
         </div>
 
-        <div className="bg-gray-900 rounded-xl overflow-hidden mb-4">
-          <div className="px-4 py-3 border-b border-gray-800">
-            <p className="text-gray-400 text-sm font-medium">Scoreboard</p>
+        <div className="ink-panel overflow-hidden mb-4">
+          <div className="px-4 py-3 ink-divider">
+            <p className="text-ink-muted text-sm font-medium">Scoreboard</p>
           </div>
           {sorted.map((p, i) => (
             <div
               key={p.id}
-              className="flex items-center px-4 py-3 border-b border-gray-800 last:border-0"
+              className="flex items-center px-4 py-3 ink-divider last:border-0"
             >
-              <span className="text-gray-600 text-sm w-6">{i + 1}</span>
+              <span className="text-ink-muted text-sm w-6">{i + 1}</span>
               <span className="flex-1 font-medium" style={{ color: p.color }}>
                 {p.nickname}
               </span>
@@ -120,7 +116,7 @@ export default function RoundEndView({
                 {p.scoreDelta > 0 && (
                   <span className="text-green-400 text-sm">+{p.scoreDelta}</span>
                 )}
-                <span className="text-white font-bold">{p.score}</span>
+                <span className="text-ink font-bold">{p.score}</span>
               </div>
             </div>
           ))}
@@ -128,25 +124,25 @@ export default function RoundEndView({
 
         {countdown !== null ? (
           <div className="text-center py-3">
-            <p className="text-gray-400 text-sm mb-1">Everyone&apos;s ready — next round in</p>
-            <p className="text-4xl font-bold text-white">{countdown}</p>
+            <p className="text-ink-muted text-sm mb-1">Everyone&apos;s ready — next round in</p>
+            <p className="font-hand text-5xl text-ink">{countdown}</p>
           </div>
         ) : (
           <>
-            <div className="bg-gray-900 rounded-xl overflow-hidden mb-4">
-              <div className="px-4 py-3 border-b border-gray-800">
-                <p className="text-gray-400 text-sm font-medium">Waiting for everyone to be ready</p>
+            <div className="ink-panel overflow-hidden mb-4">
+              <div className="px-4 py-3 ink-divider">
+                <p className="font-hand text-lg">Waiting for everyone to be ready</p>
               </div>
               {players.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center px-4 py-3 border-b border-gray-800 last:border-0"
+                  className="flex items-center px-4 py-3 ink-divider last:border-0"
                 >
                   <span className="flex-1 font-medium" style={{ color: p.color }}>
                     {p.nickname}
                     {p.id === currentPlayerId && ' (you)'}
                   </span>
-                  <span className={`text-sm font-medium ${p.is_ready ? 'text-green-400' : 'text-gray-600'}`}>
+                  <span className={`text-sm font-medium ${p.is_ready ? 'text-green-400' : 'text-ink-muted'}`}>
                     {p.is_ready ? '✓ Ready' : 'Not ready'}
                   </span>
                 </div>
@@ -155,10 +151,10 @@ export default function RoundEndView({
 
             <button
               onClick={toggleReady}
-              className={`w-full font-semibold rounded-xl py-3 transition-colors ${
+              className={`w-full font-semibold rounded-xl py-3 transition-colors border-2 ${
                 isReady
-                  ? 'bg-gray-800 text-white hover:bg-gray-700'
-                  : 'bg-white text-gray-950 hover:bg-gray-100'
+                  ? 'border-ink shadow-[2px_2px_0_var(--color-ink)] text-ink hover:bg-ink/10'
+                  : 'border-ink text-ink hover:bg-ink/10'
               }`}
             >
               {isReady ? 'Cancel' : "I'm Ready"}

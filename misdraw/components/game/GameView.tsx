@@ -173,7 +173,7 @@ export default function GameView({
   const myWord = myRole === 'artist' ? round.word : null;
 
   return (
-    <div className="h-screen bg-gray-950 flex flex-col gap-2 p-2 overflow-hidden">
+    <div className="h-screen bg-paper flex flex-col gap-2 p-2 overflow-hidden">
       {/* Combined top bar: player chips + turn status + role */}
       <PlayerTopBar
         players={players}
@@ -192,23 +192,23 @@ export default function GameView({
       />
 
       {/* Tab bar — only visible below lg breakpoint */}
-      <div className="flex lg:hidden gap-1 bg-gray-900 rounded-lg p-1 flex-shrink-0">
+      <div className="flex lg:hidden gap-1 bg-panel border-2 border-ink rounded-lg p-1 flex-shrink-0 shadow-[2px_2px_0_var(--color-ink)]">
         <button
           onClick={() => handleTabChange('draw')}
-          className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
+          className={`flex-1 py-1.5 text-sm rounded-md font-hand transition-colors ${
             activeTab === 'draw'
-              ? 'bg-gray-700 text-white font-medium'
-              : 'text-gray-400 hover:text-gray-200'
+              ? 'border-2 border-ink text-ink'
+              : 'text-ink-muted hover:text-ink'
           }`}
         >
           Drawing
         </button>
         <button
           onClick={() => handleTabChange('chat')}
-          className={`flex-1 py-1.5 text-sm rounded-md relative transition-colors ${
+          className={`flex-1 py-1.5 text-sm rounded-md font-hand relative transition-colors ${
             activeTab === 'chat'
-              ? 'bg-gray-700 text-white font-medium'
-              : 'text-gray-400 hover:text-gray-200'
+              ? 'border-2 border-ink text-ink'
+              : 'text-ink-muted hover:text-ink'
           }`}
         >
           Chat
