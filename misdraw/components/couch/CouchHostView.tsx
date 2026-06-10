@@ -39,7 +39,18 @@ export default function CouchHostView({
       score: p.score,
       scoreDelta: p.score - (prevScores[p.id] ?? p.score),
     }));
-    return <CouchRoundEnd winner={round.winner} scores={scores} roundWord={round.word} />;
+    const readyPlayers = players
+      .filter((p) => p.is_connected)
+      .map((p) => ({ id: p.id, nickname: p.nickname, is_ready: p.is_ready }));
+    return (
+      <CouchRoundEnd
+        winner={round.winner}
+        scores={scores}
+        roundWord={round.word}
+        roomId={room.id}
+        players={readyPlayers}
+      />
+    );
   }
 
   if (!round || roundPlayers.length === 0) {

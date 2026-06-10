@@ -182,6 +182,16 @@ export async function handlePlayerDrop(
     .update({ is_connected: false })
     .eq('id', playerId);
 
+  const { data: existingRound } = await supabase
+    .from('rounds')
+    .select('status')
+    .eq('id', roundId)
+    .single();
+
+  // Don't mutate a round that has already ended — a presence flicker on the
+  // round-end screen shouldn't resurrect/corrupt a finished round
+  if (!existingRound || existingRound.status === 'finished') return;
+
   await supabase
     .from('round_players')
     .update({ is_alive: false })
