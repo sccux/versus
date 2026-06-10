@@ -26,9 +26,10 @@ interface Props {
   onSend: (text: string) => void;
   isDeadPlayer: boolean;
   voting?: VotingPanelProps | null;
+  readOnly?: boolean;
 }
 
-export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlayer, voting }: Props) {
+export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlayer, voting, readOnly }: Props) {
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -75,23 +76,25 @@ export default function ChatPanel({ messages, systemMessages, onSend, isDeadPlay
         </div>
       )}
 
-      <div className="p-2 ink-divider flex gap-2 flex-shrink-0">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder={isDeadPlayer ? 'Ghost chat...' : 'Say something...'}
-          maxLength={200}
-          className="flex-1 bg-paper text-ink border border-ink-muted rounded px-3 py-2 text-sm outline-none focus:border-ink placeholder:text-ink-muted"
-        />
-        <button
-          onClick={handleSend}
-          className="border-2 border-ink rounded-full text-ink px-3 py-2 text-sm hover:bg-ink/10 transition-colors"
-        >
-          ↵
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="p-2 ink-divider flex gap-2 flex-shrink-0">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder={isDeadPlayer ? 'Ghost chat...' : 'Say something...'}
+            maxLength={200}
+            className="flex-1 bg-paper text-ink border border-ink-muted rounded px-3 py-2 text-sm outline-none focus:border-ink placeholder:text-ink-muted"
+          />
+          <button
+            onClick={handleSend}
+            className="border-2 border-ink rounded-full text-ink px-3 py-2 text-sm hover:bg-ink/10 transition-colors"
+          >
+            ↵
+          </button>
+        </div>
+      )}
     </div>
   );
 }
