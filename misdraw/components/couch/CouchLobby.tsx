@@ -27,7 +27,7 @@ export default function CouchLobby({ room, players }: Props) {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <div className="text-center">
           <h1 className="font-hand text-5xl text-ink mb-2">misdraw</h1>
           <p className="text-ink-muted mb-6 text-sm">🛋️ Couch Mode — scan or enter the code to join</p>
@@ -49,7 +49,7 @@ export default function CouchLobby({ room, players }: Props) {
             className="w-full border-2 border-ink rounded-xl text-ink font-semibold py-3 hover:bg-ink/10 transition-colors disabled:border-ink-muted disabled:text-ink-muted disabled:cursor-not-allowed"
           >
             {connectedPlayers.length < 3
-              ? `Need ${3 - connectedPlayers.length} more player${3 - connectedPlayers.length === 1 ? '' : 's'}`
+              ? 'At least 3 players required'
               : isPending
               ? 'Starting...'
               : 'Start Game'}
