@@ -9,6 +9,7 @@ export default function HomeClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const codeFromUrl = (searchParams.get('code') ?? '').toUpperCase().slice(0, 6);
+  const quickJoin = codeFromUrl.length === 6;
   const [isPending, startTransition] = useTransition();
   const [tab, setTab] = useState<'create' | 'join'>(codeFromUrl ? 'join' : 'create');
   const [createMode, setCreateMode] = useState<'online' | 'couch'>('online');
@@ -49,6 +50,41 @@ export default function HomeClient() {
         setError(e instanceof Error ? e.message : 'Room not found');
       }
     });
+  }
+
+  if (quickJoin) {
+    return (
+      <div className="min-h-screen bg-paper flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <h1 className="font-hand text-5xl text-ink text-center mb-2">misdraw</h1>
+          <p className="text-ink-muted text-center mb-8 text-sm">
+            Joining room <span className="font-mono tracking-widest text-ink">{codeFromUrl}</span>
+          </p>
+
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Your nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={20}
+              autoFocus
+              className="w-full bg-panel text-ink rounded-lg px-4 py-3 outline-none border border-ink-muted focus:border-ink placeholder:text-ink-muted"
+            />
+
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+
+            <button
+              onClick={handleJoin}
+              disabled={isPending}
+              className="w-full border-2 border-ink rounded-lg text-ink font-semibold py-3 hover:bg-ink/10 transition-colors disabled:border-ink-muted disabled:text-ink-muted disabled:cursor-not-allowed"
+            >
+              {isPending ? 'Joining...' : 'Join'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

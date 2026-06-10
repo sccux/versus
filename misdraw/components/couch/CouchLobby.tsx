@@ -27,11 +27,14 @@ export default function CouchLobby({ room, players }: Props) {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <div className="text-center">
+      <div className="w-full max-w-2xl">
+        <div className="text-center mb-6">
           <h1 className="font-hand text-5xl text-ink mb-2">misdraw</h1>
-          <p className="text-ink-muted mb-6 text-sm">🛋️ Couch Mode — scan or enter the code to join</p>
+          <p className="text-ink-muted text-sm">🛋️ Couch Mode — scan or enter the code to join</p>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div className="text-center">
           <div className="ink-panel p-6 mb-4">
             <p className="text-ink-muted text-sm mb-2">Room Code</p>
             <p className="font-hand text-4xl text-ink tracking-widest">{room.code}</p>
@@ -71,6 +74,7 @@ export default function CouchLobby({ room, players }: Props) {
               <p className="text-ink-muted text-sm">Waiting for players to join...</p>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
