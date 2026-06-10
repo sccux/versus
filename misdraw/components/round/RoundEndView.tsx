@@ -26,7 +26,7 @@ interface Props {
   roundWord: string;
   players: ReadyPlayer[];
   currentPlayerId: string;
-  isHost: boolean;
+  isRoundTrigger: boolean;
 }
 
 export default function RoundEndView({
@@ -36,7 +36,7 @@ export default function RoundEndView({
   roundWord,
   players,
   currentPlayerId,
-  isHost,
+  isRoundTrigger,
 }: Props) {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [, startTransition] = useTransition();
@@ -66,15 +66,15 @@ export default function RoundEndView({
     return () => clearInterval(id);
   }, [allReady]);
 
-  // Once the countdown reaches 0, the host starts the next round
+  // Once the countdown reaches 0, the round trigger starts the next round
   useEffect(() => {
-    if (countdown === 0 && !startedRef.current && isHost) {
+    if (countdown === 0 && !startedRef.current && isRoundTrigger) {
       startedRef.current = true;
       startTransition(async () => {
         await startRound(roomId);
       });
     }
-  }, [countdown, isHost, roomId]);
+  }, [countdown, isRoundTrigger, roomId]);
 
   function toggleReady() {
     setPlayerReady(currentPlayerId, !isReady);
